@@ -20,11 +20,11 @@ const orderSchema = new mongoose.Schema(
       {
         name: { type: String, required: true },
         price: { type: Number, required: true },
-        quantity: { type: Number, required: true }, // Sửa qty thành quantity
+        quantity: { type: Number, required: true },
         image: { type: String },
       }
     ],
-    totalAmount: { type: Number, required: true }, // Sửa totalPrice thành totalAmount
+    totalAmount: { type: Number, required: true }, 
     paymentMethod: { type: String, default: "cod" },
     status: { 
       type: String, 

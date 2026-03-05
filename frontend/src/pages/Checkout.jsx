@@ -6,12 +6,11 @@ import axios from "axios";
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch(); // Khởi tạo dispatch
+  const dispatch = useDispatch(); 
   const cartItems = useSelector((state) => state.cart.items);
   
-  // Tính tổng tiền
   const subTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  const shippingFee = subTotal > 0 ? 15000 : 0; // Giả sử phí ship 15k
+  const shippingFee = subTotal > 0 ? 15000 : 0;
   const totalAmount = subTotal + shippingFee;
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -23,7 +22,6 @@ const Checkout = () => {
     note: ""
   });
 
-  // Tự động điền thông tin nếu User đã đăng nhập
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (savedUser) {
@@ -35,13 +33,11 @@ const Checkout = () => {
     }
   }, []);
 
-  // Xử lý khi gõ vào form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // --- NÚT TỰ ĐỘNG LẤY ĐỊA CHỈ TỪ GPS ---
   const handleAutoLocate = () => {
     setIsLocating(true);
     if ("geolocation" in navigator) {
@@ -83,7 +79,6 @@ const Checkout = () => {
     }
   };
 
-  // --- ĐÃ SỬA: XỬ LÝ ĐẶT HÀNG THẬT LÊN DATABASE CÓ KÈM USER_ID ---
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) {
@@ -91,12 +86,11 @@ const Checkout = () => {
       return;
     }
     
-    // Lấy thông tin user hiện tại để gắn ID vào đơn hàng
     const savedUser = JSON.parse(localStorage.getItem("user"));
     
-    // Đóng gói dữ liệu đúng chuẩn Model Mongoose
+    // Đóng gói Data, KHÔNG TỰ CHẾ _id NỮA để tránh lỗi CastError của MongoDB
     const orderData = {
-      userId: savedUser ? savedUser.id : null, // Thêm ID để load lên Profile
+      userId: savedUser ? savedUser.id : null,
       customer: formData,
       items: cartItems.map(item => ({
         name: item.name,
@@ -105,27 +99,47 @@ const Checkout = () => {
         image: item.image
       })),
       totalAmount: totalAmount,
-      paymentMethod: paymentMethod
+      paymentMethod: paymentMethod,
+      status: "Chờ xác nhận"
     };
 
     try {
-      // Gọi API POST lên Server
-      await axios.post("http://localhost:3000/api/orders", orderData);
+      // 1. Lưu đơn hàng vào Database trước
+      const resOrder = await axios.post("http://localhost:3000/api/orders", orderData);
       
-      // Xóa sạch giỏ hàng trong Redux sau khi đặt thành công
+      // Lấy cái ID thật do MongoDB tự sinh ra
+      const newOrderId = resOrder.data._id; 
+      
+      // Xóa giỏ hàng
       dispatch(clearCart());
 
-      alert("🎉 Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.");
-      
-      // Chuyển hướng thông minh
-      if (savedUser) {
-        navigate("/profile"); // Về thẳng trang quản lý cá nhân
-      } else {
-        navigate("/"); // Khách ẩn danh thì về trang chủ
+      if (paymentMethod === "cod") {
+        alert("🎉 Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.");
+        if (savedUser) {
+          navigate("/profile"); 
+        } else {
+          navigate("/"); 
+        }
+      } 
+      else if (paymentMethod === "online") {
+        // 2. GỌI API MOMO bằng ID thật
+        const resMomo = await axios.post("http://localhost:3000/api/payment/momo", {
+          amount: totalAmount,
+          orderId: newOrderId.toString(), 
+          orderInfo: `Thanh toan don hang ${newOrderId}`
+        });
+
+        // Chuyển hướng sang trang thanh toán MoMo
+        if (resMomo.data && resMomo.data.payUrl) {
+          window.location.href = resMomo.data.payUrl;
+        } else {
+          alert("Không thể tạo link thanh toán MoMo. Vui lòng thử lại!");
+        }
       }
     } catch (error) {
-      console.error("Lỗi khi đặt hàng:", error);
-      alert("Có lỗi xảy ra khi đặt hàng, vui lòng thử lại!");
+      console.error("Lỗi khi đặt hàng:", error.response?.data || error.message);
+      // Thông báo lỗi chi tiết để bạn dễ kiểm tra
+      alert("Lỗi: " + (error.response?.data?.message || "Có lỗi xảy ra khi đặt hàng, vui lòng thử lại!"));
     }
   };
 
@@ -147,7 +161,6 @@ const Checkout = () => {
         
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* CỘT TRÁI: THÔNG TIN GIAO HÀNG & PHƯƠNG THỨC THANH TOÁN */}
           <div className="lg:col-span-2 space-y-6">
             
             {/* Box Thông tin giao hàng */}
@@ -190,7 +203,6 @@ const Checkout = () => {
               </h2>
               
               <div className="space-y-4">
-                {/* Lựa chọn Tiền mặt */}
                 <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "cod" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}>
                   <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="w-5 h-5 text-orange-600 focus:ring-orange-500" />
                   <div className="ml-4 flex items-center gap-3">
@@ -202,14 +214,14 @@ const Checkout = () => {
                   </div>
                 </label>
 
-                {/* Lựa chọn Online */}
                 <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "online" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}>
                   <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="w-5 h-5 text-orange-600 focus:ring-orange-500" />
                   <div className="ml-4 flex items-center gap-3">
-                    <span className="text-3xl">🏦</span>
+                    {/* SỬA LẠI LINK ẢNH MOMO ỔN ĐỊNH KHÔNG BỊ LỖI */}
+                    <img src="https://img.mservice.com.vn/app/img/payment/momo-icon.png" alt="MoMo" className="w-8 h-8 object-contain rounded-md" />
                     <div>
-                      <p className="font-bold text-gray-800">Chuyển khoản / Thẻ / Ví điện tử</p>
-                      <p className="text-sm text-gray-500">Thanh toán qua Momo, ZaloPay, VNPay hoặc thẻ ngân hàng.</p>
+                      <p className="font-bold text-gray-800">Thanh toán qua Ví MoMo</p>
+                      <p className="text-sm text-gray-500">Quét mã QR an toàn, tiện lợi.</p>
                     </div>
                   </div>
                 </label>
@@ -223,7 +235,6 @@ const Checkout = () => {
             <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
               <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Tóm tắt đơn hàng</h2>
               
-              {/* Danh sách món ăn */}
               <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
                 {cartItems.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-sm">
@@ -241,7 +252,6 @@ const Checkout = () => {
                 ))}
               </div>
 
-              {/* Tính tiền */}
               <div className="space-y-3 text-sm border-t pt-4 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Tạm tính ({cartItems.length} món)</span>
@@ -253,14 +263,13 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Tổng cộng */}
               <div className="flex justify-between items-center border-t pt-4 mb-8">
                 <span className="text-lg font-bold text-gray-800">Tổng cộng</span>
                 <span className="text-2xl font-black text-red-600">{totalAmount.toLocaleString()} đ</span>
               </div>
 
               <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-700 transition-all transform hover:-translate-y-0.5">
-                ĐẶT HÀNG NGAY
+                {paymentMethod === "online" ? "THANH TOÁN QUA MOMO" : "ĐẶT HÀNG NGAY"}
               </button>
             </div>
           </div>

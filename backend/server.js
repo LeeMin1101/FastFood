@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // ---> 3. Khởi tạo cấu hình Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Phải khớp với Frontend đang chạy
+    origin: "http://localhost:5173", 
     methods: ["GET", "POST"]
   }
 });
@@ -41,13 +41,13 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/banners", require("./routes/banner"));
+app.use("/api/payment", require("./routes/payment"));
 
 app.get("/", (req, res) => {
   res.send("Fast Food API is running 🚀");
 });
 
 // ---> 4. Nhúng file xử lý logic chat và truyền io vào
-// (Lưu ý: Bạn phải tạo file này ở thư mục backend/socket/chatSocket.js)
 require("./socket/chatSocket")(io);
 
 const PORT = process.env.PORT || 3000;

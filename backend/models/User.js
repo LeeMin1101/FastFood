@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
-      unique: true, // Đảm bảo không trùng tên đăng nhập
+      unique: true,
       trim: true,
     },
     email: {
@@ -36,16 +36,21 @@ const userSchema = new mongoose.Schema(
     },
     location: {
       type: String,
-      default: "chưa xác định"
+      default: "chưa xác định",
     },
-    // --- THÊM TRƯỜNG AVATAR VÀO ĐÂY ---
     avatar: {
       type: String,
-      default: "" // Mặc định rỗng, khi đó frontend sẽ hiển thị chữ cái đầu của tên
-    }
+      default: "",
+    },
+    resetOtp: {
+      type: String,
+    },
+    resetOtpExpire: {
+      type: Date,
+    },
   },
   { 
-    timestamps: true
+    timestamps: true 
   }
 );
 
