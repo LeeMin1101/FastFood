@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // ---> 3. Khởi tạo cấu hình Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", 
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -28,7 +28,7 @@ const io = new Server(server, {
 connectDB();
 
 app.use(cors({
-  origin: "http://localhost:5173", 
+  origin: "*",
   credentials: true
 }));
 
