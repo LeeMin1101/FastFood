@@ -36,7 +36,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setIsLoading(true); setMessage(""); setError("");
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/verify-otp", { email, otp });
+      const res = await axios.post("https://mtk-fastfood.onrender.com/api/auth/verify-otp", { email, otp });
       setMessage(res.data.message);
       setStep(3);
       setError("");
@@ -55,7 +55,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true); setMessage(""); setError("");
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/reset-password", { email, otp, newPassword });
+      const res = await axios.post("https://mtk-fastfood.onrender.com/api/auth/reset-password", { email, otp, newPassword });
       setMessage(res.data.message);
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {

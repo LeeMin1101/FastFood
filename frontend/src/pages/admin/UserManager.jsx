@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default function UserManager() {
   const [users, setUsers] = useState([]);
-  const API_URL = "http://localhost:3000/api/auth/users";
+  const API_URL = "https://mtk-fastfood.onrender.com/api/auth/users";
 
   // Lấy Header chứa Token từ LocalStorage
   const getAuthHeader = () => {

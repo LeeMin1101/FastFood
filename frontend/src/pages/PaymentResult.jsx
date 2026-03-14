@@ -15,7 +15,7 @@ export default function PaymentResult() {
       if (resultCode === "0") {
         setStatus("success");
         // Tại đây bạn có thể gọi API cập nhật trạng thái đơn hàng thành "Đã thanh toán"
-        // await axios.put(`http://localhost:3000/api/orders/${orderId}/status`, { status: "Đã thanh toán" });
+        // await axios.put(`https://mtk-fastfood.onrender.com/api/orders/${orderId}/status`, { status: "Đã thanh toán" });
       } else {
         setStatus("failed");
       }
