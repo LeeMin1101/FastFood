@@ -32,7 +32,7 @@ const Register = () => {
     }
 
     // 2. CHỬI MẬT KHẨU
-    if (formData.password.length >0) {
+    if (formData.password.length <0) {
       errors.password = "Chưa điền mật khẩu kìa má!";
     }
 
