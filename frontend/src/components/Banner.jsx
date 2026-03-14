@@ -7,13 +7,12 @@ export default function Banner() {
 
   useEffect(() => {
     // Kéo dữ liệu những banner HỢP LỆ từ Backend
-    const fetchBanners = async () => {
-      try {
-        const res = await axios.get("https://mtk-fastfood.onrender.com/api/banners/active");
-        setBanners(res.data);
-      } catch (error) {
-        console.error("Lỗi lấy banner:", error);
-      }
+    const SERVER_URL = "https://mtk-fastfood.onrender.com";
+
+    const getImageUrl = (img) => {
+      if (!img) return "";
+      if (img.startsWith("http")) return img;
+      return `${SERVER_URL}${img}`;
     };
     fetchBanners();
   }, []);
