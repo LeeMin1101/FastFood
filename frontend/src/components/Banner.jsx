@@ -9,7 +9,7 @@ export default function Banner() {
     // Kéo dữ liệu những banner HỢP LỆ từ Backend
     const fetchBanners = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/banners/active");
+        const res = await axios.get("https://mtk-fastfood.onrender.com/api/banners/active");
         setBanners(res.data);
       } catch (error) {
         console.error("Lỗi lấy banner:", error);
