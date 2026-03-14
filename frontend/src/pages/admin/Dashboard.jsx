@@ -3,7 +3,7 @@ import axios from "axios";
 import io from "socket.io-client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const socket = io("https://mtk-fastfood.onrender.com/");
+const socket = io("https://mtk-fastfood.onrender.com");
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -32,7 +32,7 @@ export default function Dashboard() {
   const [activeClient, setActiveClient] = useState(null);
   const [replyMsg, setReplyMsg] = useState("");
 
-  const SERVER_URL = "https://mtk-fastfood.onrender.com/";
+  const SERVER_URL = "https://mtk-fastfood.onrender.com";
   const API_URL = `${SERVER_URL}/api/products`;
   const USER_API_URL = `${SERVER_URL}/api/auth/users`;
   const ORDER_API_URL = `${SERVER_URL}/api/orders`; 
