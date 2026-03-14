@@ -3,11 +3,27 @@ import axios from "axios";
 import Banner from "../components/Banner";
 import CategoryFilter from "../components/CategoryFilter";
 import ProductCard from "../components/ProductCard";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [products, setProducts] = useState([]); 
+
+  // thêm navigate
+  const navigate = useNavigate();
+
+  // kiểm tra login khi thêm vào cart
+  const handleAddToCart = (product) => {
+    const savedUser = localStorage.getItem("user");
+
+    if (!savedUser) {
+      alert("Vui lòng đăng nhập để thêm món vào giỏ hàng!");
+      navigate("/login");
+      return;
+    }
+
+    // dispatch(addToCart(product));
+  };
 
   // 1. LẤY TỪ KHÓA TÌM KIẾM TỪ URL
   const [searchParams] = useSearchParams();
@@ -26,14 +42,10 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  // 2. NÂNG CẤP BỘ LỌC KÉP: Lọc theo Danh mục VÀ lọc theo Từ khóa
+  // 2. Lọc danh mục + từ khóa
   const filteredProducts = products.filter((p) => {
-    // Kiểm tra xem món ăn có thuộc danh mục đang chọn không
     const matchCategory = activeCategory === "Tất cả" || p.category === activeCategory;
-    
-    // Kiểm tra xem tên món ăn có chứa từ khóa không (chuyển hết về chữ thường để so sánh cho chuẩn)
     const matchSearch = p.name.toLowerCase().includes(searchKeyword.toLowerCase());
-
     return matchCategory && matchSearch;
   });
 
@@ -42,17 +54,15 @@ export default function Home() {
       <Banner />
       <main id="food-menu" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 mt-[-20px]">
         
-        {/* Thanh lọc theo danh mục */}
         <CategoryFilter activeCategory={activeCategory} setCategory={setActiveCategory} />
 
-        {/* THÔNG BÁO TỪ KHÓA TÌM KIẾM (Chỉ hiện khi có gõ tìm kiếm) */}
         {searchKeyword && (
           <div className="mt-8 mb-2 flex items-center justify-between">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800">
               Kết quả tìm kiếm cho: <span className="text-orange-500 font-black">"{searchKeyword}"</span>
             </h2>
             <button 
-              onClick={() => window.location.href = '/'} // Xóa filter để quay về ban đầu
+              onClick={() => window.location.href = '/'}
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
             >
               Hủy tìm kiếm
@@ -60,7 +70,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* HIỂN THỊ DANH SÁCH MÓN ĂN HOẶC THÔNG BÁO KHÔNG TÌM THẤY */}
         {filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl mt-8 shadow-sm border border-gray-100">
             <span className="text-6xl mb-4">🍔</span>
@@ -72,7 +81,11 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
             {filteredProducts.map(product => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                handleAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         )}

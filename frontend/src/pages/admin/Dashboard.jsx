@@ -767,21 +767,27 @@ export default function Dashboard() {
            <div className="bg-white p-8 rounded-[2rem] w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto border border-gray-100">
               <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 w-10 h-10 bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 rounded-full font-bold flex items-center justify-center transition-all">✕</button>
               <h2 className="text-2xl font-black mb-6 text-gray-800 border-b pb-4">Chi Tiết Đơn <span className="text-orange-500">#{selectedOrder._id.substring(0, 8)}</span></h2>
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Khách hàng</h3>
-                  <p className="font-bold text-gray-900 text-lg">{selectedOrder.customer?.fullName}</p>
-                  <p className="text-orange-600 font-bold mt-1">📞 {selectedOrder.customer?.phone}</p>
-                  <p className="text-sm text-gray-600 mt-2 font-medium">📍 {selectedOrder.customer?.address}</p>
+              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="font-bold text-slate-800">{selectedOrder.customer?.fullName}</p>
+                  <p className="text-gray-500 mt-1">📞 {selectedOrder.customer?.phone}</p>
+                  <p className="text-gray-500 mt-1">📍 {selectedOrder.customer?.address}</p>
+                  
+                  {/* --- ĐÂY LÀ PHẦN GHI CHÚ ĐƯỢC THÊM VÀO --- */}
+                  {selectedOrder.customer?.note && (
+                    <div className="mt-3 p-2.5 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+                      <span className="font-bold">📌 Ghi chú của khách:</span> {selectedOrder.customer.note}
+                    </div>
+                  )}
                 </div>
-                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Thông tin chung</h3>
-                  <p className="text-sm font-medium mb-2">Thanh toán: <span className="font-bold text-gray-900">{selectedOrder.paymentMethod === 'cod' ? 'Tiền mặt (COD)' : 'Online'}</span></p>
-                  <p className="text-sm font-medium mb-4">Ngày đặt: <span className="font-bold text-gray-900">{new Date(selectedOrder.createdAt).toLocaleString('vi-VN')}</span></p>
+
+                <div className="bg-gray-50 p-4 rounded-xl">
+                  <p className="mb-1"><span className="text-gray-500">Thanh toán:</span> <span className="font-medium">{selectedOrder.paymentMethod === 'cod' ? 'Tiền mặt' : 'Online'}</span></p>
+                  <p className="mb-2"><span className="text-gray-500">Ngày đặt:</span> <span className="font-medium">{new Date(selectedOrder.createdAt).toLocaleDateString('vi-VN')}</span></p>
                   <span className={`px-4 py-2 rounded-xl text-xs font-bold border ${getStatusColor(selectedOrder.status)}`}>{selectedOrder.status}</span>
                 </div>
               </div>
-              <div className="bg-white border rounded-2xl overflow-hidden mb-6 shadow-sm">
+              <div className="bg-white border rounded-2xl overflow-hidden mb-6 shadow-sm mt-4">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-50"><tr><th className="p-4 font-bold">Món ăn</th><th className="p-4 text-center font-bold">SL</th><th className="p-4 text-right font-bold">Đơn giá</th></tr></thead>
                   <tbody className="divide-y divide-gray-50">

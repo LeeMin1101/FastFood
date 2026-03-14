@@ -11,16 +11,42 @@ export default function Cart() {
   const cartItems = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
 
-  // ✅ Thêm SERVER_URL
   const SERVER_URL = "https://mtk-fastfood.onrender.com";
 
-  // ✅ Hàm xử lý hình ảnh
   const getImageUrl = (img) => {
     if (!img) return "/no-image.png";
     return img.startsWith("http")
       ? img
       : `${SERVER_URL}/${img}`;
   };
+
+  // kiểm tra login
+  const savedUser = JSON.parse(localStorage.getItem("user"));
+  if (!savedUser) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50 px-4 text-center font-sans">
+        <span className="text-6xl mb-4">🔒</span>
+        <h2 className="text-2xl font-black text-slate-800 mb-2">Vui lòng đăng nhập</h2>
+        <p className="text-gray-500 mb-8 max-w-md">
+          Bạn cần đăng nhập vào tài khoản để xem giỏ hàng và thực hiện đặt món.
+        </p>
+        <div className="flex gap-4">
+          <Link
+            to="/login"
+            className="bg-[#FF4747] text-white px-8 py-3 rounded-xl font-bold hover:bg-red-600 transition shadow-md"
+          >
+            Đăng nhập ngay
+          </Link>
+          <Link
+            to="/"
+            className="bg-white border border-gray-200 text-slate-700 px-8 py-3 rounded-xl font-bold hover:bg-gray-50 transition"
+          >
+            Quay lại trang chủ
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -35,7 +61,6 @@ export default function Cart() {
         </h1>
 
         {cartItems.length === 0 ? (
-          // --- EMPTY STATE ---
           <div className="bg-white rounded-2xl shadow-sm p-12 text-center flex flex-col items-center">
             <svg className="w-24 h-24 text-gray-300 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -47,17 +72,14 @@ export default function Cart() {
             </a>
           </div>
         ) : (
-          // --- CART CONTENT ---
           <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
-            
-            {/* Cột trái */}
+
             <div className="lg:col-span-8">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <ul className="divide-y divide-gray-200">
                   {cartItems.map(item => (
                     <li key={item._id} className="p-6 flex flex-col sm:flex-row gap-6 hover:bg-gray-50 transition-colors">
-                      
-                      {/* ✅ Ảnh sản phẩm FIX */}
+
                       <div className="shrink-0 rounded-xl border border-gray-200 overflow-hidden w-24 h-24 sm:w-32 sm:h-32">
                         <img
                           src={getImageUrl(item.image)}
@@ -69,7 +91,6 @@ export default function Cart() {
                         />
                       </div>
 
-                      {/* Thông tin */}
                       <div className="flex-1 flex flex-col justify-between">
                         <div className="flex justify-between sm:grid sm:grid-cols-2 gap-4">
                           <div>
@@ -85,7 +106,6 @@ export default function Cart() {
                           </div>
                         </div>
 
-                        {/* Nút hành động */}
                         <div className="mt-4 flex items-center justify-between">
                           <div className="flex items-center border border-gray-300 rounded-lg bg-white">
                             <button
@@ -120,7 +140,6 @@ export default function Cart() {
               </div>
             </div>
 
-            {/* Cột phải */}
             <div className="lg:col-span-4 mt-8 lg:mt-0">
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Tóm tắt đơn hàng</h2>
@@ -146,12 +165,13 @@ export default function Cart() {
                   </dl>
                 </div>
 
-                  <Link
+                <Link
                   to="/checkout"
-                  className = "block text-center w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors mt-4"
-                  >
+                  className="block text-center w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors mt-4"
+                >
                   Tiến hành thanh toán
-                  </Link>
+                </Link>
+
               </div>
             </div>
 
