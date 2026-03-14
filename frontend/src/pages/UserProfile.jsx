@@ -10,7 +10,7 @@ export default function UserProfile() {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || {});
   const [orders, setOrders] = useState([]);
   
-  const SERVER_URL = "http://localhost:3000";
+  const SERVER_URL = "https://mtk-fastfood.onrender.com";
 
   // State quản lý form và avatar
   const [formData, setFormData] = useState({ name: user.name || "", phone: user.phone || "" });

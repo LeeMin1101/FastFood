@@ -33,7 +33,7 @@ const Header = ({ user, setUser }) => {
     if (user) {
       try {
         await axios.put(
-          "http://localhost:3000/api/auth/update-location", 
+          "https://mtk-fastfood.onrender.com/api/auth/update-location", 
           { location: fullAddress }, 
           getAuthHeader()
         );

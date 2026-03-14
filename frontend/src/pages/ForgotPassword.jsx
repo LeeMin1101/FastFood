@@ -20,7 +20,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setIsLoading(true); setMessage(""); setError("");
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/forgot-password", { email });
+      const res = await axios.post("https://mtk-fastfood.onrender.com/api/auth/forgot-password", { email });
       setMessage(res.data.message);
       setStep(2);
       setError("");

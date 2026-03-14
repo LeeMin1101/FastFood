@@ -105,7 +105,7 @@ const Checkout = () => {
 
     try {
       // 1. Lưu đơn hàng vào Database trước
-      const resOrder = await axios.post("http://localhost:3000/api/orders", orderData);
+      const resOrder = await axios.post("https://mtk-fastfood.onrender.com/api/orders", orderData);
       
       // Lấy cái ID thật do MongoDB tự sinh ra
       const newOrderId = resOrder.data._id; 
@@ -123,7 +123,7 @@ const Checkout = () => {
       } 
       else if (paymentMethod === "online") {
         // 2. GỌI API MOMO bằng ID thật
-        const resMomo = await axios.post("http://localhost:3000/api/payment/momo", {
+        const resMomo = await axios.post("https://mtk-fastfood.onrender.com/api/payment/momo", {
           amount: totalAmount,
           orderId: newOrderId.toString(), 
           orderInfo: `Thanh toan don hang ${newOrderId}`

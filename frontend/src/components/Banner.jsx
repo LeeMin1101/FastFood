@@ -27,7 +27,7 @@ export default function Banner() {
     return () => clearInterval(interval);
   }, [banners.length]);
 
-  const SERVER_URL = "http://localhost:3000";
+  const SERVER_URL = "https://mtk-fastfood.onrender.com/api/banners/active";
   const getImageUrl = (img) => img.startsWith("http") ? img : `${SERVER_URL}${img}`;
 
   // Nếu không có banner nào hợp lệ, có thể hiển thị một Banner mặc định tĩnh

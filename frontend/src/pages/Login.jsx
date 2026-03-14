@@ -24,7 +24,7 @@ const Login = ({ setUser }) => {
 
     try {
       // 1️⃣ GỌI API XUỐNG BACKEND ĐỂ ĐĂNG NHẬP THẬT
-      const response = await axios.post("http://localhost:3000/api/auth/login", {
+      const response = await axios.post("https://mtk-fastfood.onrender.com/api/auth/login", {
         username,
         password,
       });

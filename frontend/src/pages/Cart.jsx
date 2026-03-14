@@ -12,7 +12,7 @@ export default function Cart() {
   const dispatch = useDispatch();
 
   // ✅ Thêm SERVER_URL
-  const SERVER_URL = "http://localhost:3000";
+  const SERVER_URL = "https://mtk-fastfood.onrender.com";
 
   // ✅ Hàm xử lý hình ảnh
   const getImageUrl = (img) => {
