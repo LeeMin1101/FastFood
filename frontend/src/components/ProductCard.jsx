@@ -10,7 +10,7 @@ const ProductCard = ({ product }) => {
 
   const getImageUrl = (img) => {
     if (!img) return "";
-    return img.startsWith("http") ? img : `https://mtk-fastfood.onrender.com/${img}`;
+    return img.startsWith("http") ? img : `https://mtk-fastfood.onrender.com${img}`;
   };
 
   const flyToCart = (imgElement) => {
