@@ -15,8 +15,9 @@ export default function Dashboard() {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [formData, setFormData] = useState({ name: "", category: "Hamburger", price: "", description: "", calories: "" });
+  
+  // SỬA: Thay vì imageFile, dùng trực tiếp image URL trong formData
+  const [formData, setFormData] = useState({ name: "", category: "Hamburger", price: "", description: "", calories: "", image: "" });
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -25,8 +26,7 @@ export default function Dashboard() {
 
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [editBannerId, setEditBannerId] = useState(null);
-  const [bannerImageFile, setBannerImageFile] = useState(null);
-  const [bannerFormData, setBannerFormData] = useState({ title: "", startDate: "", endDate: "", isActive: true });
+  const [bannerFormData, setBannerFormData] = useState({ title: "", startDate: "", endDate: "", isActive: true, image: "" });
 
   const [clients, setClients] = useState({});
   const [activeClient, setActiveClient] = useState(null);
@@ -93,18 +93,30 @@ export default function Dashboard() {
     }
   };
 
+  // --- HÀM MỚI BỔ SUNG: XỬ LÝ CLICK NÚT SỬA SẢN PHẨM ---
+  const handleEditProduct = (product) => {
+    setEditId(product._id);
+    setFormData({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      description: product.description,
+      calories: product.calories,
+      image: product.image || "" 
+    });
+    setIsModalOpen(true);
+  };
+
+  // --- SỬA LẠI HÀM LƯU: Truyền thẳng formData JSON (không dùng FormData object nữa) ---
   const handleSaveProduct = async (e) => {
     e.preventDefault(); 
-    const data = new FormData();
-    Object.keys(formData).forEach(k => data.append(k, formData[k]));
-    if (imageFile) data.append("image", imageFile);
     try {
-      const config = { headers: { ...getAuthHeader().headers, "Content-Type": "multipart/form-data" } };
+      const config = getAuthHeader(); // Bỏ multipart/form-data vì ta gửi chuỗi text bình thường
       if (editId) {
-        const res = await axios.put(`${API_URL}/${editId}`, data, config);
+        const res = await axios.put(`${API_URL}/${editId}`, formData, config);
         setProducts(products.map(p => p._id === editId ? res.data : p));
       } else {
-        const res = await axios.post(API_URL, data, config);
+        const res = await axios.post(API_URL, formData, config);
         setProducts([res.data, ...products]);
       }
       setIsModalOpen(false);
@@ -148,24 +160,22 @@ export default function Dashboard() {
       title: b.title, 
       startDate: new Date(b.startDate).toISOString().split('T')[0],
       endDate: new Date(b.endDate).toISOString().split('T')[0],
-      isActive: b.isActive 
+      isActive: b.isActive,
+      image: b.image || ""
     });
-    setBannerImageFile(null);
     setIsBannerModalOpen(true);
   };
 
+  // --- SỬA LẠI HÀM LƯU BANNER: Dùng JSON thuần ---
   const handleSaveBanner = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    Object.keys(bannerFormData).forEach(k => data.append(k, bannerFormData[k]));
-    if (bannerImageFile) data.append("image", bannerImageFile);
     try {
-      const config = { headers: { ...getAuthHeader().headers, "Content-Type": "multipart/form-data" } };
+      const config = getAuthHeader();
       if (editBannerId) {
-        const res = await axios.put(`${BANNER_API_URL}/${editBannerId}`, data, config);
+        const res = await axios.put(`${BANNER_API_URL}/${editBannerId}`, bannerFormData, config);
         setBanners(banners.map(b => b._id === editBannerId ? res.data : b));
       } else {
-        const res = await axios.post(BANNER_API_URL, data, config);
+        const res = await axios.post(BANNER_API_URL, bannerFormData, config);
         setBanners([res.data, ...banners]);
       }
       setIsBannerModalOpen(false);
@@ -337,13 +347,13 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 mt-1">Cập nhật lúc: {new Date().toLocaleTimeString('vi-VN')}</p>
           </div>
           {activeTab === "products" && (
-            <button onClick={() => { setEditId(null); setFormData({ name: "", category: "Hamburger", price: "", description: "", calories: "" }); setIsModalOpen(true); }} 
+            <button onClick={() => { setEditId(null); setFormData({ name: "", category: "Hamburger", price: "", description: "", calories: "", image: "" }); setIsModalOpen(true); }} 
               className="bg-gray-900 hover:bg-black text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-2">
               <span>+</span> Thêm Món Mới
             </button>
           )}
           {activeTab === "banners" && (
-            <button onClick={() => { setEditBannerId(null); setBannerFormData({ title: "", startDate: "", endDate: "", isActive: true }); setIsBannerModalOpen(true); }} 
+            <button onClick={() => { setEditBannerId(null); setBannerFormData({ title: "", startDate: "", endDate: "", isActive: true, image: "" }); setIsBannerModalOpen(true); }} 
               className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-2">
               <span>+</span> Thêm Banner
             </button>
@@ -702,7 +712,8 @@ export default function Dashboard() {
                   <h3 className="font-bold text-gray-900 text-lg truncate">{p.name}</h3>
                   <p className="text-red-600 font-black text-xl mt-1">{Number(p.price).toLocaleString()}đ</p>
                   <div className="grid grid-cols-2 gap-2 mt-4">
-                    <button onClick={() => handleEdit(p)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-xl transition-colors">Sửa</button>
+                    {/* NÚT SỬA SẢN PHẨM */}
+                    <button onClick={() => handleEditProduct(p)} className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 rounded-xl transition-colors">Sửa</button>
                     <button onClick={() => handleDeleteProduct(p._id)} className="bg-red-50 hover:bg-red-500 hover:text-white text-red-600 font-bold py-2 rounded-xl transition-colors">Xóa</button>
                   </div>
                 </div>
@@ -838,9 +849,10 @@ export default function Dashboard() {
                     <input required type="date" value={bannerFormData.endDate} onChange={e => setBannerFormData({...bannerFormData, endDate: e.target.value})} className="w-full bg-red-50 text-red-700 border-2 border-transparent focus:bg-white focus:border-red-500 rounded-xl p-3 outline-none transition-all font-bold" />
                   </div>
                 </div>
+                {/* Thay thế Form Data Banner thành Form nhập URL */}
                 <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-2 mb-1 block">Upload file Ảnh (Tỷ lệ ngang)</label>
-                  <input type="file" onChange={e => setBannerImageFile(e.target.files[0])} accept="image/*" className="w-full text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 cursor-pointer border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50 text-center" />
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-2 mb-1 block">Nhập Link Ảnh (URL)</label>
+                  <input required type="text" placeholder="https://..." value={bannerFormData.image || ""} onChange={e => setBannerFormData({...bannerFormData, image: e.target.value})} className="w-full bg-gray-50 border-2 border-transparent focus:bg-white focus:border-orange-500 rounded-xl p-3 outline-none transition-all font-medium" />
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                   <input type="checkbox" checked={bannerFormData.isActive} onChange={e => setBannerFormData({...bannerFormData, isActive: e.target.checked})} className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500" />
@@ -866,7 +878,9 @@ export default function Dashboard() {
                 <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-50 focus:bg-white border-2 border-transparent focus:border-orange-500 p-3 rounded-xl outline-none transition-all font-bold text-gray-700">
                   {["Hamburger", "Pizza", "Gà Rán", "Cơm", "Nước Uống", "Combo"].map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
-                <input type="file" onChange={e => setImageFile(e.target.files[0])} className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 cursor-pointer" />
+                {/* Thay thế Input File Sản Phẩm thành Input nhập Link Ảnh (URL) */}
+                <input required type="text" placeholder="Nhập Link ảnh (URL)..." value={formData.image || ""} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-gray-50 focus:bg-white border-2 border-transparent focus:border-orange-500 p-3 rounded-xl outline-none transition-all font-medium" />
+                
                 <textarea required placeholder="Mô tả món ăn..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-gray-50 focus:bg-white border-2 border-transparent focus:border-orange-500 p-3 rounded-xl outline-none transition-all font-medium min-h-[100px]"></textarea>
                 <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white font-black py-4 rounded-xl mt-4 transition-all shadow-md">Lưu Sản Phẩm</button>
               </form>
