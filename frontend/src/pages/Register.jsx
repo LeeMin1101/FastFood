@@ -17,7 +17,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post("https://mtk-fastfood.onrender.com/api/auth/register", formData);
+      await axios.post("https://fastfood-k8cr.onrender.com/api/auth/register", formData);
       alert("Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập.");
       navigate("/login");
     } catch (error) {

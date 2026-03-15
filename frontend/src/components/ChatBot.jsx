@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
-const socket = io("https://mtk-fastfood.onrender.com");
+const socket = io("https://fastfood-k8cr.onrender.com");
 
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);

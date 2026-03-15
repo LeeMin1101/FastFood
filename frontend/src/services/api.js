@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://mtk-fastfood.onrender.com/api"
+  baseURL: "https://fastfood-k8cr.onrender.com/api"
 });
 
 export default API;

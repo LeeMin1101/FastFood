@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { useRef } from "react";
 
-const SERVER_URL = "https://mtk-fastfood.onrender.com";
+const SERVER_URL = "https://fastfood-k8cr.onrender.com";
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();

@@ -17,7 +17,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("https://mtk-fastfood.onrender.com/api/products");
+        const response = await axios.get("https://fastfood-k8cr.onrender.com/api/products");
         setProducts(response.data);
       } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);

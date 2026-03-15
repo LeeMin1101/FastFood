@@ -5,7 +5,7 @@ export default function Banner() {
   const [banners, setBanners] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const SERVER_URL = "https://mtk-fastfood.onrender.com";
+  const SERVER_URL = "https://fastfood-k8cr.onrender.com";
 
   // Chuyển đường dẫn ảnh cho đúng
   const getImageUrl = (img) => {

@@ -26,7 +26,7 @@ const ResetPassword = () => {
     setMessage("");
 
     try {
-      const res = await axios.post(`https://mtk-fastfood.onrender.com/api/auth/reset-password/${id}/${token}`, { password });
+      const res = await axios.post(`https://fastfood-k8cr.onrender.com/api/auth/reset-password/${id}/${token}`, { password });
       setMessage(res.data.message);
       setTimeout(() => navigate("/login"), 3000); // Tự động về trang đăng nhập sau 3s
     } catch (err) {
