@@ -1,0 +1,63 @@
+/* ===================================
+   MTK FastFood - Background Styling
+   ==================================== */
+
+/* Ensure html and body fill the viewport */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Root element takes full height */
+#root {
+  height: 100%;
+}
+
+/* ===================================
+   Pattern Overlay
+   ==================================== */
+
+.bg-pattern {
+  background-attachment: fixed;
+}
+
+/* ===================================
+   Responsive Adjustments
+   ==================================== */
+
+/* Tablet - Adjust pattern size */
+@media (max-width: 768px) {
+  .bg-pattern {
+    background-size: 40px 40px !important;
+  }
+}
+
+/* Mobile - Make pattern more subtle */
+@media (max-width: 480px) {
+  .bg-pattern {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px) !important;
+    background-size: 35px 35px !important;
+  }
+}
+
+/* ===================================
+   Alternative Background Options
+   ==================================== */
+
+/* Option 1: Minimal gradient (very subtle - no pattern) */
+.bg-minimal {
+  background: linear-gradient(180deg, #fff7f2 0%, #fff4ed 40%, #ffffff 100%) !important;
+}
+
+/* Option 2: Stronger gradient */
+.bg-strong {
+  background: linear-gradient(135deg, #fff7f2 0%, #fff4ed 50%, #fff5ed 100%) !important;
+}
+
+/* Option 3: Cool tone gradient */
+.bg-cool {
+  background: linear-gradient(180deg, #f7f9fc 0%, #f0f4f8 50%, #ffffff 100%) !important;
+}
+

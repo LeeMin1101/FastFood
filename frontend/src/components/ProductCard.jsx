@@ -2,28 +2,21 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import { useRef } from "react";
-
-const SERVER_URL = "https://fastfood-k8cr.onrender.com";
+import { motion } from "framer-motion";
+import { SERVER_URL } from "../config";
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const imgRef = useRef(null);
 
-  // Chuẩn hóa URL ảnh
   const getImageUrl = (img) => {
     if (!img) return "/img/no-image.png";
-
-    // nếu đã là link đầy đủ
     if (img.startsWith("http")) return img;
-
-    // đảm bảo có dấu /
     if (!img.startsWith("/")) img = "/" + img;
-
     return `${SERVER_URL}${img}`;
   };
 
-  // animation bay vào giỏ
   const flyToCart = (imgElement) => {
     const cart = document.getElementById("cart-icon");
     if (!cart || !imgElement) return;
@@ -41,7 +34,7 @@ const ProductCard = ({ product }) => {
     imgClone.style.borderRadius = "50%";
     imgClone.style.zIndex = "9999";
     imgClone.style.pointerEvents = "none";
-    imgClone.style.boxShadow = "0 10px 20px rgba(0,0,0,0.2)";
+    imgClone.style.boxShadow = "0 10px 20px rgba(255,100,0,0.3)";
 
     document.body.appendChild(imgClone);
 
@@ -60,21 +53,42 @@ const ProductCard = ({ product }) => {
     }, 800);
   };
 
+  // 🔴 CHECK LOGIN (THÊM MỚI)
+  const checkLogin = () => {
+    const user = localStorage.getItem("user");
+    if (!user) {
+      alert("Đăng nhập đi đã rồi mua 🍔, không là khỏi bấm 😏");
+      navigate("/login");
+      return false;
+    }
+    return true;
+  };
+
+  // 🔴 UPDATE LOGIC
   const handleAddToCart = () => {
+    if (!checkLogin()) return;
     flyToCart(imgRef.current);
     dispatch(addToCart(product));
   };
 
   const handleBuyNow = () => {
+    if (!checkLogin()) return;
     dispatch(addToCart(product));
     navigate("/cart");
   };
 
+  const handleViewDetail = () => {
+    navigate(`/product/${product._id}`);
+  };
+
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group flex flex-col h-full">
+    <motion.div 
+      whileHover={{ y: -8 }}
+      className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden group flex flex-col h-full hover:border-orange-500/50"
+    >
 
       {/* IMAGE */}
-      <div className="relative overflow-hidden aspect-[4/3]">
+      <div className="relative overflow-hidden aspect-[4/3] cursor-pointer group/image" onClick={handleViewDetail}>
         <img
           ref={imgRef}
           src={getImageUrl(product.image)}
@@ -85,32 +99,47 @@ const ProductCard = ({ product }) => {
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
         />
 
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm flex items-center gap-1 text-sm font-semibold text-gray-700">
-          🔥 <span className="text-orange-600">{product.calories}</span> kcal
+        <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-md px-3 py-1 rounded-full shadow-lg flex items-center gap-1 text-sm font-semibold text-orange-300 border border-white/20">
+          🔥 <span>{product.calories}</span> kcal
+        </div>
+
+        {/* Quick view overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent group-hover/image:from-black/60 transition-all flex items-center justify-center">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ opacity: 1, scale: 1 }}
+            className="opacity-0 group-hover/image:opacity-100 transition-opacity"
+          >
+            <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+              Xem chi tiết
+            </span>
+          </motion.div>
         </div>
       </div>
 
       {/* CONTENT */}
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">
+      <div className="p-5 flex flex-col flex-grow cursor-pointer" onClick={handleViewDetail}>
+        <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-orange-400 transition-colors">
           {product.name}
         </h3>
 
-        <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow">
+        <p className="text-sm text-gray-300 line-clamp-2 mb-4 flex-grow">
           {product.description}
         </p>
 
         <div className="mt-auto">
-          <p className="text-2xl font-extrabold text-red-500 mb-4">
+          <p className="text-2xl font-extrabold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-4">
             {product.price?.toLocaleString("vi-VN")}đ
           </p>
 
           <div className="flex items-center gap-3">
             {/* ADD TO CART */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleAddToCart}
               title="Thêm vào giỏ hàng"
-              className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100 hover:text-orange-700 transition duration-300 focus:ring-2 focus:ring-orange-200"
+              className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gradient-to-r from-orange-600 to-orange-500 text-white rounded-xl hover:from-orange-700 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-orange-500/50"
             >
               <svg
                 className="w-6 h-6"
@@ -128,19 +157,21 @@ const ProductCard = ({ product }) => {
                   2a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
-            </button>
+            </motion.button>
 
             {/* BUY NOW */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleBuyNow}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-xl hover:shadow-lg hover:from-orange-600 hover:to-red-700 transition duration-300 transform active:scale-95"
+              className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold py-3 px-4 rounded-xl hover:from-orange-600 hover:to-red-700 transition-all duration-300 shadow-lg hover:shadow-orange-500/50"
             >
               Mua ngay
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

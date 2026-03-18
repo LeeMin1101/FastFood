@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { clearCart } from "../redux/cartSlice"; 
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { SERVER_URL } from "../config";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -105,7 +106,7 @@ const Checkout = () => {
 
     try {
       // 1. Lưu đơn hàng vào Database trước
-      const resOrder = await axios.post("https://fastfood-k8cr.onrender.com/api/orders", orderData);
+      const resOrder = await axios.post(`${SERVER_URL}/api/orders`, orderData);
       
       // Lấy cái ID thật do MongoDB tự sinh ra
       const newOrderId = resOrder.data._id; 
@@ -123,7 +124,7 @@ const Checkout = () => {
       } 
       else if (paymentMethod === "online") {
         // 2. GỌI API MOMO bằng ID thật
-        const resMomo = await axios.post("https://fastfood-k8cr.onrender.com/api/payment/momo", {
+        const resMomo = await axios.post(`${SERVER_URL}/api/payment/momo`, {
           amount: totalAmount,
           orderId: newOrderId.toString(), 
           orderInfo: `Thanh toan don hang ${newOrderId}`
@@ -145,9 +146,9 @@ const Checkout = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-gray-50">
-        <h2 className="text-2xl font-bold text-gray-700 mb-4">Giỏ hàng của bạn đang trống</h2>
-        <Link to="/" className="bg-orange-500 text-white px-6 py-3 rounded-full font-bold hover:bg-orange-600 transition">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center">
+        <h2 className="text-2xl font-bold text-white mb-4">Giỏ hàng của bạn đang trống</h2>
+        <Link to="/" className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-full font-bold hover:from-orange-600 hover:to-red-700 transition-all shadow-lg">
           Quay lại mua sắm
         </Link>
       </div>
@@ -155,73 +156,72 @@ const Checkout = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10">
+    <div className="min-h-screen py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <h1 className="text-3xl font-black text-gray-800 mb-8">Thanh Toán Đơn Hàng</h1>
+        <h1 className="text-4xl font-black text-white mb-8">Thanh Toán Đơn Hàng</h1>
         
         <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-6">
             
             {/* Box Thông tin giao hàng */}
-            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <span className="text-2xl">🛵</span> Thông tin giao hàng
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Họ và tên *</label>
-                  <input required type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Nhập họ tên người nhận" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all" />
+                  <label className="block text-sm font-semibold text-gray-200 mb-2">Họ và tên *</label>
+                  <input required type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} placeholder="Nhập họ tên người nhận" className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại *</label>
-                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Nhập số điện thoại" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all" />
+                  <label className="block text-sm font-semibold text-gray-200 mb-2">Số điện thoại *</label>
+                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="Nhập số điện thoại" className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" />
                 </div>
                 
                 <div className="md:col-span-2">
-                  <div className="flex justify-between items-end mb-1.5">
-                    <label className="block text-sm font-semibold text-gray-700">Địa chỉ nhận hàng *</label>
-                    <button type="button" onClick={handleAutoLocate} disabled={isLocating} className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1">
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="block text-sm font-semibold text-gray-200">Địa chỉ nhận hàng *</label>
+                    <button type="button" onClick={handleAutoLocate} disabled={isLocating} className="text-xs font-bold text-orange-400 hover:text-orange-300 flex items-center gap-1">
                       {isLocating ? "⏳ Đang định vị..." : "📍 Lấy vị trí hiện tại"}
                     </button>
                   </div>
-                  <input required type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="VD: 123 Nguyễn Văn Tiên, Khu phố 9, Biên Hòa..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all" />
+                  <input required type="text" name="address" value={formData.address} onChange={handleInputChange} placeholder="VD: 123 Nguyễn Văn Tiên, Khu phố 9, Biên Hòa..." className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" />
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Ghi chú cho Shipper (Tùy chọn)</label>
-                  <textarea name="note" value={formData.note} onChange={handleInputChange} placeholder="VD: Giao tới gọi điện xuống lấy, không bấm chuông..." rows="3" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"></textarea>
+                  <label className="block text-sm font-semibold text-gray-200 mb-2">Ghi chú cho Shipper (Tùy chọn)</label>
+                  <textarea name="note" value={formData.note} onChange={handleInputChange} placeholder="VD: Giao tới gọi điện xuống lấy, không bấm chuông..." rows="3" className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"></textarea>
                 </div>
               </div>
             </div>
 
             {/* Box Phương thức thanh toán */}
-            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20">
+              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <span className="text-2xl">💳</span> Phương thức thanh toán
               </h2>
               
               <div className="space-y-4">
-                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "cod" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}>
-                  <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="w-5 h-5 text-orange-600 focus:ring-orange-500" />
+                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "cod" ? "border-orange-500 bg-orange-500/20" : "border-white/20 hover:border-orange-500/50"}`}>
+                  <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="w-5 h-5 text-orange-500 focus:ring-orange-500" />
                   <div className="ml-4 flex items-center gap-3">
                     <span className="text-3xl">💵</span>
                     <div>
-                      <p className="font-bold text-gray-800">Thanh toán khi nhận hàng (COD)</p>
-                      <p className="text-sm text-gray-500">Thanh toán bằng tiền mặt khi Shipper giao tới.</p>
+                      <p className="font-bold text-white">Thanh toán khi nhận hàng (COD)</p>
+                      <p className="text-sm text-gray-400">Thanh toán bằng tiền mặt khi Shipper giao tới.</p>
                     </div>
                   </div>
                 </label>
 
-                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "online" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}>
-                  <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="w-5 h-5 text-orange-600 focus:ring-orange-500" />
+                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "online" ? "border-orange-500 bg-orange-500/20" : "border-white/20 hover:border-orange-500/50"}`}>
+                  <input type="radio" name="payment" value="online" checked={paymentMethod === "online"} onChange={() => setPaymentMethod("online")} className="w-5 h-5 text-orange-500 focus:ring-orange-500" />
                   <div className="ml-4 flex items-center gap-3">
-                    {/* SỬA LẠI LINK ẢNH MOMO ỔN ĐỊNH KHÔNG BỊ LỖI */}
                     <img src="https://img.mservice.com.vn/app/img/payment/momo-icon.png" alt="MoMo" className="w-8 h-8 object-contain rounded-md" />
                     <div>
-                      <p className="font-bold text-gray-800">Thanh toán qua Ví MoMo</p>
-                      <p className="text-sm text-gray-500">Quét mã QR an toàn, tiện lợi.</p>
+                      <p className="font-bold text-white">Thanh toán qua Ví MoMo</p>
+                      <p className="text-sm text-gray-400">Quét mã QR an toàn, tiện lợi.</p>
                     </div>
                   </div>
                 </label>
@@ -232,43 +232,43 @@ const Checkout = () => {
 
           {/* CỘT PHẢI: TÓM TẮT ĐƠN HÀNG */}
           <div className="lg:col-span-1">
-            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Tóm tắt đơn hàng</h2>
+            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 sticky top-[100px]">
+              <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Tóm tắt đơn hàng</h2>
               
-              <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+              <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
                 {cartItems.map((item, idx) => (
                   <div key={idx} className="flex justify-between text-sm">
                     <div className="flex gap-3">
-                      <div className="font-bold text-gray-800">{item.quantity}x</div>
+                      <div className="font-bold text-orange-300">{item.quantity}x</div>
                       <div>
-                        <p className="font-semibold text-gray-800">{item.name}</p>
-                        {item.option && <p className="text-xs text-gray-500">{item.option}</p>}
+                        <p className="font-semibold text-white">{item.name}</p>
+                        {item.option && <p className="text-xs text-gray-400">{item.option}</p>}
                       </div>
                     </div>
-                    <div className="font-semibold text-gray-800 whitespace-nowrap ml-4">
+                    <div className="font-semibold text-orange-300 whitespace-nowrap ml-4">
                       {(item.price * item.quantity).toLocaleString()} đ
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="space-y-3 text-sm border-t pt-4 mb-6">
-                <div className="flex justify-between text-gray-600">
+              <div className="space-y-3 text-sm border-t border-white/10 pt-4 mb-6">
+                <div className="flex justify-between text-gray-300">
                   <span>Tạm tính ({cartItems.length} món)</span>
                   <span>{subTotal.toLocaleString()} đ</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-gray-300">
                   <span>Phí giao hàng</span>
                   <span>{shippingFee.toLocaleString()} đ</span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center border-t pt-4 mb-8">
-                <span className="text-lg font-bold text-gray-800">Tổng cộng</span>
-                <span className="text-2xl font-black text-red-600">{totalAmount.toLocaleString()} đ</span>
+              <div className="flex justify-between items-center border-t border-white/10 pt-4 mb-8">
+                <span className="text-lg font-bold text-white">Tổng cộng</span>
+                <span className="text-2xl font-black bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">{totalAmount.toLocaleString()} đ</span>
               </div>
 
-              <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 rounded-xl font-black text-lg shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-700 transition-all transform hover:-translate-y-0.5">
+              <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:from-orange-600 hover:to-red-700 hover:shadow-orange-500/50 transition-all transform hover:-translate-y-0.5">
                 {paymentMethod === "online" ? "THANH TOÁN QUA MOMO" : "ĐẶT HÀNG NGAY"}
               </button>
             </div>

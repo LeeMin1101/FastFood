@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { SERVER_URL } from "../../config";
 
 export default function UserManager() {
   const [users, setUsers] = useState([]);
-  const API_URL = "https://fastfood-k8cr.onrender.com/api/auth/users";
+  const API_URL = `${SERVER_URL}/api/auth/users`;
 
   // Lấy Header chứa Token từ LocalStorage
   const getAuthHeader = () => {
@@ -36,19 +37,19 @@ export default function UserManager() {
   };
 
   return (
-    <div className="p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2">
+    <div className="p-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20">
+      <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-2">
         <span>👥</span> Quản Lý Tài Khoản Người Dùng
       </h2>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="p-4 font-bold text-gray-600 uppercase text-xs">Tên</th>
-              <th className="p-4 font-bold text-gray-600 uppercase text-xs">Email/Username</th>
-              <th className="p-4 font-bold text-gray-600 uppercase text-xs">Vai trò</th>
-              <th className="p-4 font-bold text-gray-600 uppercase text-xs">Ngày tạo</th>
-              <th className="p-4 font-bold text-gray-600 uppercase text-xs text-center">Hành động</th>
+            <tr className="bg-white/5 border-b border-white/10">
+              <th className="p-4 font-bold text-gray-400 uppercase text-xs">Tên</th>
+              <th className="p-4 font-bold text-gray-400 uppercase text-xs">Email/Username</th>
+              <th className="p-4 font-bold text-gray-400 uppercase text-xs">Vai trò</th>
+              <th className="p-4 font-bold text-gray-400 uppercase text-xs">Ngày tạo</th>
+              <th className="p-4 font-bold text-gray-400 uppercase text-xs text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -58,12 +59,12 @@ export default function UserManager() {
               </tr>
             ) : (
               users.map((user) => (
-                <tr key={user._id} className="border-b border-gray-50 hover:bg-orange-50/30 transition-colors">
-                  <td className="p-4 font-semibold text-gray-800">{user.name}</td>
-                  <td className="p-4 text-gray-600">{user.username || user.email}</td>
+                <tr key={user._id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                  <td className="p-4 font-semibold text-white">{user.name}</td>
+                  <td className="p-4 text-gray-300">{user.username || user.email}</td>
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${
-                      user.role === 'admin' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                      user.role === 'admin' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                     }`}>
                       {user.role}
                     </span>
@@ -75,12 +76,12 @@ export default function UserManager() {
                     {user.role !== 'admin' ? (
                       <button 
                         onClick={() => handleDelete(user._id)}
-                        className="text-red-400 hover:text-red-600 transition font-bold text-sm"
+                        className="text-red-300 hover:text-red-200 transition font-bold text-sm hover:bg-red-500/20 px-3 py-1 rounded-lg border border-red-500/30"
                       >
                         Xóa
                       </button>
                     ) : (
-                      <span className="text-gray-300 text-xs italic">Hệ thống</span>
+                      <span className="text-gray-400 text-xs italic">Hệ thống</span>
                     )}
                   </td>
                 </tr>

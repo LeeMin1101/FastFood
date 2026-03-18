@@ -36,15 +36,15 @@ export default function AdminChat() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-orange-900 to-red-900">
       {/* Sidebar: Danh sách khách hàng */}
-      <div className="w-1/4 bg-white border-r">
-        <h2 className="p-4 font-bold border-b">Khách hàng trực tuyến</h2>
+      <div className="w-1/4 bg-white/5 backdrop-blur-xl border-r border-white/10">
+        <h2 className="p-4 font-bold border-b border-white/10 text-white">Khách hàng trực tuyến</h2>
         {chats.map(chat => (
           <div 
             key={chat.id} 
             onClick={() => setSelectedChat(chat.id)}
-            className={`p-4 cursor-pointer hover:bg-orange-50 ${selectedChat === chat.id ? 'bg-orange-100' : ''}`}
+            className={`p-4 cursor-pointer hover:bg-white/10 transition-colors border-b border-white/5 text-white ${selectedChat === chat.id ? 'bg-orange-500/20 border-l-2 border-l-orange-500' : ''}`}
           >
             Chat ID: {chat.id}
           </div>
@@ -52,30 +52,35 @@ export default function AdminChat() {
       </div>
 
       {/* Nội dung chat */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl">
         {selectedChat ? (
           <>
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
               {messages.map((m, i) => (
-                <div key={i} className={`mb-2 ${m.sender === "staff" ? "text-right" : "text-left"}`}>
-                  <span className={`inline-block p-2 rounded-lg ${m.sender === "staff" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
+                <div key={i} className={`flex ${m.sender === "staff" ? "justify-end" : "justify-start"}`}>
+                  <span className={`inline-block px-4 py-3 rounded-2xl max-w-xs ${m.sender === "staff" ? "bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 border border-white/20 rounded-tl-none"}`}>
                     {m.text}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t bg-white flex gap-2">
+            <div className="p-4 border-t border-white/10 bg-white/5 flex gap-2">
               <input 
                 value={reply} 
                 onChange={(e) => setReply(e.target.value)}
-                className="flex-1 border p-2 rounded" 
+                className="flex-1 border border-white/20 bg-white/5 p-3 rounded-xl text-white placeholder-gray-400 outline-none focus:border-orange-500 focus:bg-white/10 transition-all" 
                 placeholder="Nhập câu trả lời..."
               />
-              <button onClick={sendReply} className="bg-orange-500 text-white px-4 py-2 rounded">Gửi</button>
+              <button onClick={sendReply} className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-700 transition-all shadow-lg">Gửi</button>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">Chọn một khách hàng để bắt đầu hỗ trợ</div>
+          <div className="flex-1 flex items-center justify-center text-gray-400 font-medium text-lg">
+            <div className="text-center">
+              <span className="text-6xl mb-4 block opacity-30">💬</span>
+              Chọn một khách hàng để bắt đầu hỗ trợ
+            </div>
+          </div>
         )}
       </div>
     </div>

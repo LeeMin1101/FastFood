@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { SERVER_URL } from "../config";
 
 const ResetPassword = () => {
   const { id, token } = useParams(); // Lấy ID và Token từ URL
@@ -26,7 +27,7 @@ const ResetPassword = () => {
     setMessage("");
 
     try {
-      const res = await axios.post(`https://fastfood-k8cr.onrender.com/api/auth/reset-password/${id}/${token}`, { password });
+      const res = await axios.post(`${SERVER_URL}/api/auth/reset-password/${id}/${token}`, { password });
       setMessage(res.data.message);
       setTimeout(() => navigate("/login"), 3000); // Tự động về trang đăng nhập sau 3s
     } catch (err) {
@@ -37,7 +38,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 w-full max-w-md">
         <h2 className="text-2xl font-black mb-2 text-center text-slate-800">Tạo mật khẩu mới 🔑</h2>
         <p className="text-sm text-gray-500 mb-6 text-center font-medium">Vui lòng nhập mật khẩu mới cho tài khoản của bạn</p>
