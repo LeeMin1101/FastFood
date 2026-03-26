@@ -29,13 +29,25 @@ export default function UserProfile() {
     fetchMyOrders();
   }, [navigate, user.id]);
 
-  // HÀM FETCH ĐƠN HÀNG THẬT TỪ DATABASE
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/login"); // Đẩy thẳng về trang login
+    window.location.reload();
+  };
+
+  // HÀM FETCH ĐƠN HÀNG THẬT TỪ DATABASE (ĐÃ NÂNG CẤP BẮT LỖI 401)
   const fetchMyOrders = async () => {
     try {
       const res = await axios.get(`${SERVER_URL}/api/orders/my-orders`, getAuthHeader());
       setOrders(res.data);
     } catch (error) {
       console.error("Lỗi tải đơn hàng:", error);
+      // Nếu Backend báo 401 (Hết hạn Token) -> Tự động đăng xuất
+      if (error.response && error.response.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại nhé!");
+        handleLogout();
+      }
     }
   };
 
@@ -69,17 +81,15 @@ export default function UserProfile() {
       
       alert("Cập nhật thông tin thành công! 🎉");
     } catch (error) {
-      alert("Lỗi khi cập nhật: " + (error.response?.data?.error || "Vui lòng thử lại"));
+      if (error.response && error.response.status === 401) {
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại nhé!");
+        handleLogout();
+      } else {
+        alert("Lỗi khi cập nhật: " + (error.response?.data?.error || "Vui lòng thử lại"));
+      }
     } finally {
       setIsUpdating(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    navigate("/");
-    window.location.reload();
   };
 
   const totalSpent = orders.filter(o => o.status === "Đã giao").reduce((sum, o) => sum + o.totalAmount, 0);
@@ -136,7 +146,8 @@ export default function UserProfile() {
                 className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-black shadow-lg mb-4 cursor-pointer relative overflow-hidden border-4 border-white/20 ring-2 ring-orange-500/50 bg-gradient-to-tr from-orange-400 to-red-500"
               >
                 {previewAvatar ? (
-                  <img src={previewAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                  /* ĐÃ THÊM crossOrigin="anonymous" VÀO ĐÂY */
+                  <img src={previewAvatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
                 ) : (
                   user.name?.charAt(0).toUpperCase()
                 )}

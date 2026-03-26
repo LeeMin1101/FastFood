@@ -18,6 +18,7 @@ const server = http.createServer(app);
 
 // Danh sách domain được phép gọi API
 const allowedOrigins = [
+  "http://localhost:5173",
   "http://localhost:3000",
   "https://fastfood-1-oav2.onrender.com"
 ];

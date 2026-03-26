@@ -142,6 +142,7 @@ export default function ProductDetail() {
     setTimeout(() => document.body.removeChild(imgClone), 800);
   };
 
+  // NÚT THÊM VÀO GIỎ HÀNG (GIỮ NGUYÊN)
   const handleAddToCart = () => {
     if (!product) return;
     
@@ -161,9 +162,22 @@ export default function ProductDetail() {
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
+  // 👉 NÚT MUA NGAY (ĐÃ UPDATE: BỎ QUA GIỎ HÀNG, BAY THẲNG SANG CHECKOUT)
   const handleBuyNow = () => {
-    handleAddToCart();
-    setTimeout(() => navigate("/cart"), 500);
+    if (!product) return;
+    
+    const directItem = {
+      ...product,
+      quantity: quantity,
+      selectedToppings: selectedToppings,
+      variant: selectedVariant ? selectedVariant.name : "",
+      notes: note,
+      unitPrice: calculateUnitPrice(),
+      totalPrice: calculateUnitPrice() * quantity
+    };
+
+    // Truyền dữ liệu trực tiếp sang trang checkout thông qua 'state'
+    navigate("/checkout", { state: { directItem } });
   };
 
   if (loading) {
@@ -338,7 +352,7 @@ export default function ProductDetail() {
                       product.isAvailable ? "bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30" : "bg-gray-800 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    Thanh toán • {(unitPrice * quantity).toLocaleString("vi-VN")} ₫
+                    Mua Ngay • {(unitPrice * quantity).toLocaleString("vi-VN")} ₫
                   </button>
                 </div>
               </div>

@@ -26,12 +26,11 @@ const orderSchema = new mongoose.Schema(
     ],
     totalAmount: { type: Number, required: true }, 
     paymentMethod: { type: String, default: "cod" },
-    status: { 
-      type: String, 
-      // Đồng bộ trạng thái tiếng Việt với giao diện Admin
-      enum: ["Chờ xác nhận", "Đang chuẩn bị", "Đang giao", "Đã giao", "Đã hủy"],
-      default: "Chờ xác nhận" 
-    }
+    status: {
+        type: String,
+        enum: ['Chờ thanh toán', 'Chờ xác nhận', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã hủy'],
+        default: 'Chờ xác nhận'
+      },
   },
   { timestamps: true }
 );

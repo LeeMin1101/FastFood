@@ -16,6 +16,7 @@ import Menu from "./pages/Menu";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import PaymentQR from "./pages/PaymentQR";
 import UserProfile from "./pages/UserProfile";
 import AuthPage from "./pages/AuthPage";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -71,7 +72,8 @@ function App() {
             {/* Admin */}
             <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-
+            {/* page thanh toán */}
+            <Route path="/payment-qr/:orderId" element={<PaymentQR />} />
             {/* Not Found */}
             <Route path="*" element={<NotFound />} />
             
