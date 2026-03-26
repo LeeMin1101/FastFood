@@ -48,8 +48,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Chống spam cho api xác thực (15 phút / 5 lần)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 5,
+  windowMs: 5 * 60 * 1000, 
+  max: 10,
   message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau 15 phút" }
 });
 
