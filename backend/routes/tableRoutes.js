@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Table = require('../models/Table');
+const Table = require('../models/tables');
 
 // [GET] Lấy danh sách bàn (Tự động tạo 20 bàn nếu chưa có)
 router.get('/', async (req, res) => {

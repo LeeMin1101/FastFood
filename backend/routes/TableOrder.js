@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TableOrder = require('../models/TableOrder');
-const Table = require('../models/Table'); // Nhúng thêm model Table
+const Table = require('../models/tables'); // Nhúng thêm model Table
 
 router.post('/', async (req, res) => {
   try {
