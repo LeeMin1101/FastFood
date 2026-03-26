@@ -1,4 +1,4 @@
-// models/Product.js
+
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
@@ -29,6 +29,19 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    toppings: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

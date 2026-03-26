@@ -18,7 +18,7 @@ const ProductCard = ({ product }) => {
   };
 
   const flyToCart = (imgElement) => {
-    const cart = document.getElementById("cart-icon");
+    const cart = document.getElementById("cart-icon") || document.querySelector('a[href="/cart"]');
     if (!cart || !imgElement) return;
 
     const imgClone = imgElement.cloneNode(true);
@@ -39,10 +39,8 @@ const ProductCard = ({ product }) => {
     document.body.appendChild(imgClone);
 
     setTimeout(() => {
-      imgClone.style.left =
-        cartRect.left + cartRect.width / 2 - 15 + "px";
-      imgClone.style.top =
-        cartRect.top + cartRect.height / 2 - 15 + "px";
+      imgClone.style.left = cartRect.left + cartRect.width / 2 - 15 + "px";
+      imgClone.style.top = cartRect.top + cartRect.height / 2 - 15 + "px";
       imgClone.style.width = "30px";
       imgClone.style.height = "30px";
       imgClone.style.opacity = "0";
@@ -53,7 +51,6 @@ const ProductCard = ({ product }) => {
     }, 800);
   };
 
-  // 🔴 CHECK LOGIN (THÊM MỚI)
   const checkLogin = () => {
     const user = localStorage.getItem("user");
     if (!user) {
@@ -64,17 +61,28 @@ const ProductCard = ({ product }) => {
     return true;
   };
 
-  // 🔴 UPDATE LOGIC
-  const handleAddToCart = () => {
+  // Nút Thêm vào giỏ: Gửi dữ liệu mặc định vào Redux
+  const handleAddToCart = (e) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan ra thẻ cha
     if (!checkLogin()) return;
     flyToCart(imgRef.current);
-    dispatch(addToCart(product));
+    
+    const cartPayload = {
+      ...product,
+      quantity: 1,
+      selectedToppings: [],
+      variant: "",
+      notes: "",
+      unitPrice: product.price,
+      totalPrice: product.price
+    };
+    dispatch(addToCart(cartPayload));
   };
 
-  const handleBuyNow = () => {
-    if (!checkLogin()) return;
-    dispatch(addToCart(product));
-    navigate("/cart");
+  // Nút Mua ngay: KHÔNG add vào giỏ, chuyển sang trang chi tiết để chọn Size/Topping
+  const handleBuyNow = (e) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan ra thẻ cha
+    navigate(`/product/${product._id}`);
   };
 
   const handleViewDetail = () => {
@@ -84,11 +92,12 @@ const ProductCard = ({ product }) => {
   return (
     <motion.div 
       whileHover={{ y: -8 }}
-      className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden group flex flex-col h-full hover:border-orange-500/50"
+      className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 overflow-hidden group flex flex-col h-full hover:border-orange-500/50 cursor-pointer"
+      onClick={handleViewDetail}
     >
 
       {/* IMAGE */}
-      <div className="relative overflow-hidden aspect-[4/3] cursor-pointer group/image" onClick={handleViewDetail}>
+      <div className="relative overflow-hidden aspect-[4/3] group/image">
         <img
           ref={imgRef}
           src={getImageUrl(product.image)}
@@ -118,7 +127,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* CONTENT */}
-      <div className="p-5 flex flex-col flex-grow cursor-pointer" onClick={handleViewDetail}>
+      <div className="p-5 flex flex-col flex-grow">
         <h3 className="text-lg font-bold text-white mb-2 line-clamp-1 group-hover:text-orange-400 transition-colors">
           {product.name}
         </h3>
@@ -151,10 +160,7 @@ const ProductCard = ({ product }) => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293
-                  2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2
-                  2 0 100 4 2 2 0 000-4zm-8
-                  2a2 2 0 11-4 0 2 2 0 014 0z"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
             </motion.button>

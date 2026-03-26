@@ -1,102 +1,111 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import Banner from "../components/Banner";
-import CategoryFilter from "../components/CategoryFilter";
-import ProductCard from "../components/ProductCard";
-import { useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { SERVER_URL } from "../config";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState("Tất cả");
-  const [products, setProducts] = useState([]); 
-
-  const [searchParams] = useSearchParams();
-  const searchKeyword = searchParams.get("search") || "";
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(`${SERVER_URL}/api/products`);
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Lỗi tải dữ liệu:", error);
-      }
-    };
-    fetchProducts();
-  }, []);
-
-  const filteredProducts = products.filter((p) => {
-    const matchCategory = activeCategory === "Tất cả" || p.category === activeCategory;
-    const matchSearch = p.name.toLowerCase().includes(searchKeyword.toLowerCase());
-    return matchCategory && matchSearch;
-  });
-
   return (
-    <div className="min-h-screen pb-20 bg-gradient-to-br from-gray-900 via-orange-900 to-red-900">
-      <Banner />
-      <main id="food-menu" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 mt-[-20px]">
+    <div className="min-h-screen bg-gray-950 font-sans flex flex-col">
+      
+      {/* Promo Bar */}
+      <div className="w-full bg-gradient-to-r from-orange-600 to-red-600 py-2.5 overflow-hidden flex items-center relative z-20 shadow-lg border-b border-white/10">
+        <motion.div
+          animate={{ x: ["100%", "-100%"] }}
+          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+          className="whitespace-nowrap font-bold text-sm md:text-base text-white tracking-widest flex items-center gap-10"
+        >
+          <span>ƯU ĐÃI THÁNG NÀY: GIẢM 20% CHO ĐƠN HÀNG TỪ 200K - NHẬP MÃ: MTK20</span>
+          <span>FREESHIP TRONG BÁN KÍNH 5KM</span>
+          <span>TẶNG KÈM NƯỚC KHI MUA COMBO GÀ RÁN</span>
+          <span>ƯU ĐÃI THÁNG NÀY: GIẢM 20% CHO ĐƠN HÀNG TỪ 200K - NHẬP MÃ: MTK20</span>
+        </motion.div>
+      </div>
+
+      {/* Hero Banner Section */}
+      <div className="relative w-full h-[60vh] md:h-[80vh] lg:h-[90vh] bg-black">
+        <img 
+          src="/img/banner_new.png" 
+          alt="MTK FastFood Banner" 
+          className="w-full h-full object-cover opacity-90"
+        />
         
-        <CategoryFilter activeCategory={activeCategory} setCategory={setActiveCategory} />
-
-        {searchKeyword && (
+        <div className="absolute inset-0 max-w-[1400px] mx-auto px-4 sm:px-8 flex flex-col justify-center items-start pointer-events-none">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 mb-2 flex items-center justify-between bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl px-6 py-4 shadow-xl"
+            initial={{ opacity: 0, y: 30 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mt-32 md:mt-48 lg:mt-64 pointer-events-auto pl-4 md:pl-10"
           >
-            <h2 className="text-xl md:text-2xl font-bold text-white">
-              Kết quả tìm kiếm cho: <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-black">"{searchKeyword}"</span>
-            </h2>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              onClick={() => window.location.href = '/'} 
-              className="text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 px-4 py-2 rounded-full transition-all shadow-lg"
+            <Link 
+              to="/menu" 
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black text-lg md:text-xl px-10 py-4 rounded-full shadow-[0_10_30px_rgba(249,115,22,0.4)] hover:scale-105 hover:shadow-[0_10_40px_rgba(249,115,22,0.6)] transition-all duration-300"
             >
-              Hủy tìm kiếm
-            </motion.button>
+              ĐẶT MÓN NGAY
+            </Link>
           </motion.div>
-        )}
+        </div>
+      </div>
 
-        {filteredProducts.length === 0 ? (
+      {/* Brand Story Section */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-24 md:py-32">
+        <div className="text-center mb-16 md:mb-24">
+          <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-600 mb-6">
+            Uy tín tạo nên MTK
+          </h2>
+          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            Chúng tôi không chỉ phục vụ thức ăn nhanh. Chúng tôi mang đến trải nghiệm Nhanh - Nóng - Ngon mỗi ngày bằng cả trái tim.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+          
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center py-20 bg-white/10 backdrop-blur-xl rounded-3xl mt-8 shadow-2xl border border-white/20"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex justify-center"
           >
-            <motion.span 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-6xl mb-4 inline-block"
-            >
-              🍔
-            </motion.span>
-            <h3 className="text-2xl font-bold text-white">Rất tiếc!</h3>
-            <p className="text-gray-300 mt-2 font-medium">
-              Không tìm thấy món ăn nào phù hợp với yêu cầu của bạn.
+            <img src="/img/MTK.png" alt="MTK Logo Story" className="w-full max-w-md drop-shadow-[0_20px_50px_rgba(249,115,22,0.2)]" />
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl"
+          >
+            <h3 className="text-2xl font-black text-white mb-6 border-b border-white/10 pb-4">Câu Chuyện Thương Hiệu</h3>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Biểu tượng 3 cậu bé trên logo không chỉ là hình ảnh đại diện, mà chính là linh hồn của thương hiệu. Đó là <strong>Minh, Thiện và Khang</strong> — ba nhà sáng lập của MTK FastFood.
             </p>
+            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+              Mỗi thành viên nắm giữ một vai trò nòng cốt, là những mảnh ghép không thể thiếu để tạo nên một hệ thống vận hành hoàn hảo:
+            </p>
+            <ul className="space-y-5">
+              <li className="flex items-start gap-4">
+                <div>
+                  <strong className="text-orange-400 text-xl block">Minh</strong>
+                  <span className="text-gray-300">Đam mê sáng tạo hương vị, bếp trưởng đứng sau những công thức tuyệt hảo.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <div>
+                  <strong className="text-orange-400 text-xl block">Thiện</strong>
+                  <span className="text-gray-300">Quản lý vận hành, đảm bảo đồ ăn luôn "Nóng" và đến tay khách hàng nhanh nhất.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <div>
+                  <strong className="text-orange-400 text-xl block">Khang</strong>
+                  <span className="text-gray-300">Chăm sóc trải nghiệm khách hàng, mang lại sự tận tâm và hài lòng tuyệt đối.</span>
+                </div>
+              </li>
+            </ul>
           </motion.div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8"
-          >
-            {filteredProducts.map((product, idx) => (
-              <motion.div
-                key={product._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-              >
-                <ProductCard product={product} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-        
-      </main>
+        </div>
+      </div>
+
     </div>
   );
 }

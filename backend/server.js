@@ -42,6 +42,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/banners", require("./routes/banner"));
 app.use("/api/payment", require("./routes/payment"));
+app.use('/api/table-orders', require('./routes/TableOrder'));
+app.use('/api/tables', require('./routes/tables'));
 
 app.get("/", (req, res) => {
   res.send("Fast Food API is running 🚀");

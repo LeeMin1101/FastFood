@@ -91,8 +91,8 @@ const Footer = () => {
               <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.7878687793996!2d106.70002579999999!3d10.827539600000001!2m3!1f0!2f0!2f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317528f4a62fce9b%3A0xc99902aa1e26ef02!2sVan%20Lang%20University%20-%20Main%20Campus!5e0!3m2!1sen!2s!4v1772497923786!5m2!1sen!2s"
-                  width="700"
-                  height="400"
+                  width="600"
+                  height="200"
                   style={{ border: 0, borderRadius: "12px" }}
                   allowFullScreen=""
                   loading="lazy"
