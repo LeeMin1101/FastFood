@@ -55,7 +55,7 @@ export default function TableOrder() {
           
           {/* CỘT TRÁI - SƠ ĐỒ BÀN */}
           <div className="xl:w-1/2 bg-black/40 p-8 md:p-12 border-b xl:border-b-0 xl:border-r border-white/10 flex flex-col items-center">
-            <img src="/public/img/MTK.PNG" alt="MTK FastFood" className="w-32 md:w-40 h-auto mb-6 drop-shadow-2xl opacity-90" />
+            <img src="/img/MTK.PNG" alt="MTK FastFood" className="w-32 md:w-40 h-auto mb-6 drop-shadow-2xl opacity-90" />
             <h2 className="text-2xl font-black text-white uppercase tracking-widest mb-4">Sơ đồ nhà hàng</h2>
             
             {/* Chú thích màu sắc */}
