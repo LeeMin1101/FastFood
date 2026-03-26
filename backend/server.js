@@ -19,7 +19,7 @@ const server = http.createServer(app);
 // Danh sách domain được phép gọi API
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://fastfood-k8cr.onrender.com"
+  "https://fastfood-1-oav2.onrender.com"
 ];
 
 // Cấu hình Socket.io

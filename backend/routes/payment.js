@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const axios = require("axios");
-const Order = require("../models/Order"); // Nhớ tạo model Order nếu bạn lưu vào DB
+const Order = require("../models/Order"); 
 
 // [POST] TẠO LINK THANH TOÁN MOMO
 router.post("/momo", async (req, res) => {
@@ -15,7 +15,7 @@ router.post("/momo", async (req, res) => {
     
     const requestId = partnerCode + new Date().getTime();
     const redirectUrl = "http://localhost:5173/payment-result"; // Link trả về sau khi thanh toán
-    const ipnUrl = "http://localhost:3000/api/payment/callback"; // Link webhook (bỏ qua nếu chạy localhost)
+    const ipnUrl = "http://localhost:3000/api/payment/callback";
     const requestType = "captureWallet";
     const extraData = ""; 
 
