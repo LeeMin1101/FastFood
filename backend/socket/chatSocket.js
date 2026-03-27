@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    console.log(`🟢 Kết nối mới: ${socket.id}`);
+    console.log(`Kết nối mới: ${socket.id}`);
 
     // 1. Khi User (khách) mở chat, tải lịch sử tin nhắn của họ
     socket.on("join_chat", async (clientId) => {
@@ -142,7 +142,7 @@ const model = genAI.getGenerativeModel({
     });
 
     socket.on("disconnect", () => {
-      console.log(`🔴 Mất kết nối: ${socket.id}`);
+      console.log(`Mất kết nối: ${socket.id}`);
     });
   }); 
 };
