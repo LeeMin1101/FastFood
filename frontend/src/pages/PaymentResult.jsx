@@ -16,7 +16,7 @@ export default function PaymentResult() {
       if (resultCode === "0") {
         setStatus("success");
         // Tại đây bạn có thể gọi API cập nhật trạng thái đơn hàng thành "Đã thanh toán"
-        // await axios.put(`${SERVER_URL}/api/orders/${orderId}/status`, { status: "Đã thanh toán" });
+        await axios.put(`${SERVER_URL}/api/orders/${orderId}/status`, { status: "Đã thanh toán" });
       } else {
         setStatus("failed");
       }

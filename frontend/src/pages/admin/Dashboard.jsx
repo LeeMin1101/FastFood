@@ -19,8 +19,8 @@ export default function Dashboard() {
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]); 
   const [banners, setBanners] = useState([]);
-  const [tableOrders, setTableOrders] = useState([]); // Quản lý danh sách đơn đặt bàn
-  const [restaurantTables, setRestaurantTables] = useState([]); // 👉 Thêm State quản lý sơ đồ bàn
+  const [tableOrders, setTableOrders] = useState([]); 
+  const [restaurantTables, setRestaurantTables] = useState([]); 
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -58,7 +58,7 @@ export default function Dashboard() {
     fetchOrders();
     fetchBanners();
     fetchTableOrders();
-    fetchRestaurantTables(); // 👉 Fetch sơ đồ bàn khi load trang
+    fetchRestaurantTables(); 
 
     socket.emit("admin_join");
     socket.on("admin_load_history", (allMessages) => {
@@ -89,14 +89,7 @@ export default function Dashboard() {
   const fetchOrders = async () => { try { const res = await axios.get(ORDER_API_URL, getAuthHeader()); setOrders(res.data); } catch (e) {} };
   const fetchBanners = async () => { try { const res = await axios.get(BANNER_API_URL, getAuthHeader()); setBanners(res.data); } catch (e) {} };
   const fetchTableOrders = async () => { try { const res = await axios.get(TABLE_ORDER_API_URL, getAuthHeader()); setTableOrders(res.data); } catch (e) {} };
-  
-  // 👉 Fetch danh sách 20 bàn
-  const fetchRestaurantTables = async () => {
-    try { 
-      const res = await axios.get(`${SERVER_URL}/api/tables`); 
-      setRestaurantTables(res.data); 
-    } catch(e){}
-  };
+  const fetchRestaurantTables = async () => { try { const res = await axios.get(`${SERVER_URL}/api/tables`); setRestaurantTables(res.data); } catch(e){} };
 
   // Order Handlers
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
@@ -116,7 +109,7 @@ export default function Dashboard() {
     }
   };
 
-  // 👉 Table Order Handlers (Xử lý đặt bàn & Sơ đồ)
+  // Table Order Handlers
   const handleUpdateTableOrderStatus = async (id, newStatus) => {
     try {
       await axios.put(`${TABLE_ORDER_API_URL}/${id}/status`, { status: newStatus }, getAuthHeader());
@@ -124,7 +117,6 @@ export default function Dashboard() {
     } catch (e) { alert("Lỗi cập nhật trạng thái đặt bàn!"); }
   };
 
-  // 👉 Cập nhật Xanh/Đỏ khi Admin click vào bàn
   const handleToggleTable = async (tableId) => {
     try {
       const res = await axios.put(`${SERVER_URL}/api/tables/${tableId}/toggle`, {}, getAuthHeader());
@@ -292,8 +284,9 @@ export default function Dashboard() {
   const totalOrdersCount = orders.length;
   const totalUsersCount = users.filter(u => u.role === "user").length;
 
-  const COLORS = ['#FBBF24', '#60A5FA', '#A78BFA', '#34D399', '#F87171'];
+  const COLORS = ['#FBBF24', '#60A5FA', '#A78BFA', '#34D399', '#F87171', '#9CA3AF'];
   const orderStatusData = [
+    { name: 'Chờ thanh toán', value: orders.filter(o => o.status === "Chờ thanh toán").length },
     { name: 'Chờ xác nhận', value: orders.filter(o => o.status === "Chờ xác nhận").length },
     { name: 'Đang chuẩn bị', value: orders.filter(o => o.status === "Đang chuẩn bị").length },
     { name: 'Đang giao', value: orders.filter(o => o.status === "Đang giao").length },
@@ -335,7 +328,6 @@ export default function Dashboard() {
   });
   const topProductsList = Object.values(productSales).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
 
-  // Render
   return (
     <div className="h-screen w-full overflow-hidden bg-gradient-to-br from-gray-900 via-orange-900 to-red-900 flex font-sans">
       
@@ -551,7 +543,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Orders */}
+          {/* 👉 CẬP NHẬT TAB ĐƠN HÀNG */}
           {activeTab === "orders" && (
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl overflow-hidden w-full">
               <div className="overflow-x-auto w-full">
@@ -580,6 +572,8 @@ export default function Dashboard() {
                         <td className="p-4 text-center">
                           <select value={o.status} onChange={(e) => handleUpdateOrderStatus(o._id, e.target.value)}
                             className="border border-white/20 bg-white/5 px-2 py-1.5 rounded-lg text-xs font-medium outline-none cursor-pointer text-white focus:border-orange-500">
+                            {/* THÊM OPTION CHỜ THANH TOÁN VÀO ĐÂY ĐỂ TRÁNH LỖI HIỂN THỊ */}
+                            <option value="Chờ thanh toán" className="bg-gray-900">Chờ thanh toán</option>
                             <option value="Chờ xác nhận" className="bg-gray-900">Chờ xác nhận</option>
                             <option value="Đang chuẩn bị" className="bg-gray-900">Đang chuẩn bị</option>
                             <option value="Đang giao" className="bg-gray-900">Đang giao</option>
@@ -588,7 +582,20 @@ export default function Dashboard() {
                           </select>
                         </td>
                         <td className="p-4 text-center">
-                          <button onClick={() => setSelectedOrder(o)} className="text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-lg font-medium transition-colors">Chi tiết</button>
+                          <div className="flex justify-center gap-2">
+                            {/* NÚT XÁC NHẬN ĐÃ NHẬN TIỀN (Chỉ hiện khi đơn đang chờ thanh toán) */}
+                            {o.status === "Chờ thanh toán" && (
+                              <button 
+                                onClick={() => handleUpdateOrderStatus(o._id, "Đang chuẩn bị")} 
+                                className="text-green-400 bg-green-500/20 hover:bg-green-500/40 border border-green-500/50 px-3 py-1.5 rounded-lg font-bold transition-colors text-xs shadow-[0_0_10px_rgba(34,197,94,0.2)]"
+                              >
+                                ✅ Đã nhận tiền
+                              </button>
+                            )}
+                            <button onClick={() => setSelectedOrder(o)} className="text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-lg font-medium transition-colors text-xs">
+                              Chi tiết
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -598,11 +605,10 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* 👉 Table Orders (Quản lý đặt bàn & Sơ đồ ghế) */}
+          {/* Table Orders */}
           {activeTab === "tables" && (
             <div className="space-y-6">
               
-              {/* SƠ ĐỒ ĐIỀU KHIỂN BÀN */}
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
                   <h3 className="text-white font-bold uppercase">Sơ đồ điều khiển (Click để Đóng/Mở bàn)</h3>
@@ -628,7 +634,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* DANH SÁCH ĐƠN ĐẶT BÀN */}
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl overflow-hidden w-full">
                 <div className="overflow-x-auto w-full">
                   <table className="w-full text-left text-sm whitespace-nowrap">
@@ -868,7 +873,7 @@ export default function Dashboard() {
                  </div>
                  <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
                    <h3 className="text-xs font-bold text-gray-400 mb-2 uppercase">Thông tin</h3>
-                   <p className="text-sm text-white mb-2">{selectedOrder.paymentMethod === 'cod' ? 'Tiền mặt' : 'Online'}</p>
+                   <p className="text-sm text-white mb-2">{selectedOrder.paymentMethod === 'cod' ? 'Tiền mặt' : 'Chuyển khoản (QR)'}</p>
                    <span className="px-3 py-1 rounded-lg text-xs font-medium border border-white/20 text-white">{selectedOrder.status}</span>
                  </div>
               </div>
