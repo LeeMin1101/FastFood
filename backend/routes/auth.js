@@ -18,9 +18,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ==========================================
-// 1. CÁC API XÁC THỰC (AUTH)
-// ==========================================
 router.post("/register", async (req, res) => {
   try {
     const { name, username, email, phone, password } = req.body;
@@ -72,9 +69,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ==========================================
-// 2. CÁC API NGƯỜI DÙNG (USER)
-// ==========================================
 router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   try {
     const { name, phone } = req.body;
@@ -98,9 +92,6 @@ router.put("/update-location", protect, async (req, res) => {
   }
 });
 
-// ==========================================
-// 3. CÁC API QUẢN TRỊ (ADMIN)
-// ==========================================
 router.get("/users", isAdmin, async (req, res) => {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
@@ -141,7 +132,6 @@ router.delete("/users/:id", isAdmin, async (req, res) => {
   }
 }); 
 
-// các api quên mật khẩu
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;

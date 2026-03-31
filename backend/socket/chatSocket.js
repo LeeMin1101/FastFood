@@ -6,16 +6,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    console.log(`Kết nối mới: ${socket.id}`);
 
-    // 1. Khi User (khách) mở chat, tải lịch sử tin nhắn của họ
     socket.on("join_chat", async (clientId) => {
-      socket.join(clientId); // Gom user này vào 1 "phòng" cố định dựa trên ID của họ
+      socket.join(clientId);
       try {
         const history = await Message.find({ clientId }).sort({ createdAt: 1 });
         socket.emit("load_history", history);
       } catch (error) {
-        console.error("Lỗi lấy lịch sử chat:", error);
+        // Failed to load chat history
       }
     });
 
@@ -26,7 +24,7 @@ module.exports = (io) => {
         const allMessages = await Message.find().sort({ createdAt: 1 });
         socket.emit("admin_load_history", allMessages);
       } catch (error) {
-        console.error("Lỗi lấy lịch sử chat cho admin:", error);
+        // Failed to load admin chat history
       }
     });
 
@@ -89,9 +87,7 @@ const model = genAI.getGenerativeModel({
         io.to("admin_room").emit("admin_receive_message", aiMsg);
 
       } catch (error) {
-        console.error("Lỗi xử lý tin nhắn hoặc Gemini API:", error);
-        
-        // Nếu Gemini bị lỗi, báo cho khách biết
+        // Gemini API or message processing error; send fallback response
         const errorMsg = new Message({
           clientId: data.clientId,
           clientName: "System",
@@ -117,32 +113,28 @@ const model = genAI.getGenerativeModel({
           sender: "admin",
           text: data.message
         });
-        await newMsg.save(); // Lưu vào DB
+        await newMsg.save();
 
-        // Bắn trực tiếp về "phòng" của đúng người khách đó
         io.to(data.targetClientId).emit("user_receive_message", newMsg);
-        // Bắn ngược lại màn hình Admin (để đồng bộ nếu admin mở nhiều tab)
         io.to("admin_room").emit("admin_receive_message", newMsg);
       } catch (error) {
-        console.error("Lỗi admin gửi tin nhắn:", error);
+        // Failed to save admin reply
       }
     });
 
     // 5. Admin xóa đoạn chat
     socket.on("admin_clear_chat", async (clientId) => {
       try {
-        // xóa tin nhắn user trong dbbase
         await Message.deleteMany({ clientId: clientId });
         
-        // Gửi lệnh yêu cầu màn hình khách hàng tự động reset khung chat
         io.to(clientId).emit("server_clear_chat");
       } catch (error) {
-        console.error("Lỗi khi xóa chat:", error);
+        // Failed to clear chat
       }
     });
 
     socket.on("disconnect", () => {
-      console.log(`Mất kết nối: ${socket.id}`);
+      // Socket disconnected
     });
   }); 
 };

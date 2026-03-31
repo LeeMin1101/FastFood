@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const axios = require("axios");
 const Order = require("../models/Order"); 
 
-// [POST] TẠO LINK THANH TOÁN MOMO
 router.post("/momo", async (req, res) => {
   try {
     const { amount, orderInfo, orderId } = req.body;
@@ -54,7 +53,6 @@ router.post("/momo", async (req, res) => {
     res.status(200).json({ payUrl: result.data.payUrl });
 
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Lỗi tạo thanh toán MoMo" });
   }
 });

@@ -24,8 +24,6 @@ import Dashboard from "./pages/admin/Dashboard";
 import TableOrder from "./pages/TableOrder";
 import NotFound from "./pages/NotFound";
 
-// import AIFoodScan from "./pages/AIFoodScan";
-
 function App() {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user"))
@@ -33,7 +31,6 @@ function App() {
 
   const location = useLocation();
 
-  // Ẩn layout ở trang auth và admin
   const hideLayoutRoutes = [
     "/login",
     "/register",
@@ -55,7 +52,6 @@ function App() {
 
         <main className={!shouldHideLayout ? "pt-[80px] lg:pt-[110px] flex-1" : "flex-1"}>
           <Routes>
-            {/* Public */}
             <Route path="/" element={<Home />} />
             <Route path="/menu" element={<Menu />} />
             <Route path="/login" element={<AuthPage setUser={setUser} />} />
@@ -64,20 +60,14 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/table-order" element={<TableOrder />} />
 
-            {/* Protected */}
             <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
-            {/* Admin */}
             <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-            {/* page thanh toán */}
             <Route path="/payment-qr/:orderId" element={<PaymentQR />} />
-            {/* Not Found */}
             <Route path="*" element={<NotFound />} />
-            
-            {/* <Route path="/ai-scan" element={<AIFoodScan />} /> */}
           </Routes>
         </main>
 

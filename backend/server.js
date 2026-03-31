@@ -16,14 +16,12 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 
-// Danh sách domain được phép gọi API
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://fastfood-1-oav2.onrender.com"
 ];
 
-// Cấu hình Socket.io
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -33,10 +31,8 @@ const io = new Server(server, {
 
 connectDB();
 
-// Bảo mật HTTP headers
 app.use(helmet());
 
-// Cross-Origin Resource Sharing
 app.use(cors({
   origin: allowedOrigins,
   credentials: true
@@ -44,10 +40,8 @@ app.use(cors({
 
 app.use(express.json());
 
-// Phục vụ ảnh tĩnh
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Chống spam cho api xác thực (15 phút / 5 lần)
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, 
   max: 10,

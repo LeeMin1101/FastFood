@@ -11,7 +11,6 @@ const cartSlice = createSlice({
     addToCart: (state, action) => {
       const newItem = action.payload;
 
-      // 👉 BẢO VỆ DỮ LIỆU: Nếu thêm nhanh từ Trang chủ (không có quantity, size), tự động gán mặc định
       const quantity = newItem.quantity || 1;
       const unitPrice = newItem.unitPrice || newItem.price;
       const totalPrice = newItem.totalPrice || (unitPrice * quantity);

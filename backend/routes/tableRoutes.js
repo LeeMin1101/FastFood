@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Table = require('../models/tables');
 
-// [GET] Lấy danh sách bàn (Tự động tạo 20 bàn nếu chưa có)
 router.get('/', async (req, res) => {
   try {
     let tables = await Table.find().sort({ tableNumber: 1 });
@@ -17,7 +16,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// [PUT] Admin cập nhật trạng thái bàn (Trống / Đã đặt)
 router.put('/:id/toggle', async (req, res) => {
   try {
     const table = await Table.findById(req.params.id);

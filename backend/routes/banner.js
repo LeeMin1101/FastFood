@@ -5,14 +5,12 @@ const multer = require("multer");
 const path = require("path");
 const { protect, isAdmin } = require("../middlewares/authMiddleware");
 
-// Cấu hình lưu ảnh Banner
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => cb(null, "banner-" + Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
-// [GET] Lấy TẤT CẢ Banner (Dành cho Admin)
 router.get("/", isAdmin, async (req, res) => {
   try {
     const banners = await Banner.find().sort({ createdAt: -1 });
