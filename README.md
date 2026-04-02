@@ -8,7 +8,7 @@
 
 Một nền tảng thương mại điện tử chuyên biệt cho cửa hàng thức ăn nhanh, cung cấp trải nghiệm đặt món mượt mà cho khách hàng và hệ thống quản trị (Dashboard) toàn diện cho chủ quán. Dự án được tích hợp trí tuệ nhân tạo (AI Chatbot) và hệ thống giao tiếp thời gian thực.
 
-## 🌟 Tính Năng Nổi Bật
+## Tính Năng Nổi Bật
 
 ### Dành cho Khách Hàng (Client)
 * **Mua sắm thông minh:** Xem thực đơn, tìm kiếm món ăn, chọn size/topping linh hoạt.
@@ -57,12 +57,15 @@ Một nền tảng thương mại điện tử chuyên biệt cho cửa hàng th
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/7c62b9e5-c5ac-45cf-957a-c69311eafbef" />
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/af14ed8f-a81a-4a45-a26c-fddc45f79272" />
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/4bd856b6-ba06-4061-9605-4d6fbaf91281" />
-* **Link Deploy:**
-https://fastfood-1-oav2.onrender.com
-**Tác Giả:**
-Trương Lê Minh
+**Link Deploy:**  
+https://fastfood-1-oav2.onrender.com  
 
-Đại học Văn Lang (VLU)
+---
 
-Email: hoitruongzero@gmail.com
-GitHub: @LeeMin1101
+**Tác Giả:**  
+**Trương Lê Minh**  
+
+Đại học Văn Lang (VLU)  
+
+📧 Email: hoitruongzero@gmail.com  
+🐙 GitHub: https://github.com/LeeMin1101
