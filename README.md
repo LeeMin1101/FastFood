@@ -36,14 +36,33 @@ Một nền tảng thương mại điện tử chuyên biệt cho cửa hàng th
 
 ## Hình Ảnh Demo
 
-> **Gợi ý:** Bạn hãy chụp ảnh màn hình trang web của bạn (Trang chủ, Trang Đặt món, Sơ đồ đặt bàn, Admin Dashboard) và kéo thả trực tiếp vào giao diện edit README của GitHub. Nó sẽ tự động tạo link ảnh, bạn chỉ cần thay thế vào các dòng dưới đây!
-
 * **Trang Chủ & Thực Đơn**
-    *(Chèn ảnh tại đây)*
+           Trang chủ
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/a0e7b364-8517-487b-8606-16608d6512e9" />
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/f5954205-76dc-40d8-81ac-7e6fc8f93944" />
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/d508231e-455c-4cd6-9a06-85641e161e77" />
+           Thực Đơn
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/b890d140-6729-48df-a795-6f341b7845a3" />
+           Chi Tiết Sản Phẩm
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/e168b874-9b9e-4a72-bcde-1cb29aa5c345" />
 * **Luồng Thanh Toán & Mã QR**
-    *(Chèn ảnh tại đây)*
+   Trang Thanh Toán
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/f4f8df03-8e96-4b3d-8ddd-a05fe6d75508" />
+  Thanh Toán Bằng QR
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/9088fdc5-56e3-4714-8b4a-920edccf243b" />
+* **ChatBox Tích Hợp AI**
+   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/46bd872e-8b51-41e4-82ab-6d8239bcf50f" />
+* **Tính Năng Đặt Bàn**
+  <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/9e45c8ed-d900-4f9e-bd40-78a89c40bf57" />
+
 * **Giao Diện Quản Trị (Dashboard)**
-    *(Chèn ảnh tại đây)*
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/de508479-83f2-4498-b7e3-a4a3b2aacc40" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/8ea683b3-a657-4d48-83e8-c92e095068af" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/23e5cfe7-a963-495e-a3f1-31d510287b49" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/7c62b9e5-c5ac-45cf-957a-c69311eafbef" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/af14ed8f-a81a-4a45-a26c-fddc45f79272" />
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/4bd856b6-ba06-4061-9605-4d6fbaf91281" />
+
 
 ## Hướng Dẫn Cài Đặt (Chạy Local)
 
