@@ -37,18 +37,13 @@ Một nền tảng thương mại điện tử chuyên biệt cho cửa hàng th
 ## Hình Ảnh Demo
 
 * **Trang Chủ & Thực Đơn**
-           Trang chủ
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/a0e7b364-8517-487b-8606-16608d6512e9" />
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/f5954205-76dc-40d8-81ac-7e6fc8f93944" />
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/d508231e-455c-4cd6-9a06-85641e161e77" />
-           Thực Đơn
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/b890d140-6729-48df-a795-6f341b7845a3" />
-           Chi Tiết Sản Phẩm
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/e168b874-9b9e-4a72-bcde-1cb29aa5c345" />
 * **Luồng Thanh Toán & Mã QR**
-   Trang Thanh Toán
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/f4f8df03-8e96-4b3d-8ddd-a05fe6d75508" />
-  Thanh Toán Bằng QR
   <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/9088fdc5-56e3-4714-8b4a-920edccf243b" />
 * **ChatBox Tích Hợp AI**
    <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/46bd872e-8b51-41e4-82ab-6d8239bcf50f" />
