@@ -57,13 +57,12 @@ Một nền tảng thương mại điện tử chuyên biệt cho cửa hàng th
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/7c62b9e5-c5ac-45cf-957a-c69311eafbef" />
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/af14ed8f-a81a-4a45-a26c-fddc45f79272" />
 <img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/4bd856b6-ba06-4061-9605-4d6fbaf91281" />
+* **Link Deploy:**
+https://fastfood-1-oav2.onrender.com
+**Tác Giả:**
+Trương Lê Minh
 
+Đại học Văn Lang (VLU)
 
-## Hướng Dẫn Cài Đặt (Chạy Local)
-
-Làm theo các bước sau để chạy dự án trên máy tính cá nhân:
-
-**1. Clone kho lưu trữ về máy:**
-```bash
-git clone [https://github.com/LeeMin1101/FastFood.git](https://github.com/LeeMin1101/FastFood.git)
-cd FastFood
+Email: hoitruongzero@gmail.com
+GitHub: @LeeMin1101
