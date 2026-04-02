@@ -1,4 +1,4 @@
-#<img width="2000" height="2000" alt="MTK Fast Trio Logo with Flame-Haired Mascot" src="https://github.com/user-attachments/assets/f933b7e6-f043-4482-b710-195db9e4c48f" /> MTK FastFood - Hệ Thống Đặt Đồ Ăn & Quản Lý Nhà Hàng Trực Tuyến
+# MTK FastFood - Hệ Thống Đặt Đồ Ăn & Quản Lý Nhà Hàng Trực Tuyến
 
 ![MERN Stack](https://img.shields.io/badge/Stack-MERN-blue?style=for-the-badge&logo=mongodb)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
