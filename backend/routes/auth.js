@@ -7,7 +7,9 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 
 const { protect, isAdmin } = require("../middlewares/authMiddleware");
+const { googleLogin } = require("../controllers/authController");
 
+// Cấu hình Multer upload avatar
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -18,6 +20,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// API Đăng ký
 router.post("/register", async (req, res) => {
   try {
     const { name, username, email, phone, password } = req.body;
@@ -36,6 +39,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// API Đăng nhập
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -69,6 +73,10 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// API Login bằng Google
+router.post("/google", googleLogin);
+
+// API Cập nhật Profile cá nhân (User)
 router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   try {
     const { name, phone } = req.body;
@@ -83,28 +91,27 @@ router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   }
 });
 
-router.put("/update-location", protect, async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.user.id, { location: req.body.location }, { new: true });
-    res.json(user);
-  } catch(error) {
-    res.status(500).json({ message: "Lỗi cập nhật vị trí" });
-  }
-});
 
-router.get("/users", isAdmin, async (req, res) => {
+// =========================================================
+// API DÀNH CHO ADMIN (Quản lý Khách hàng trên Dashboard)
+// =========================================================
+
+// Lấy danh sách tất cả Users
+router.get("/users", protect, isAdmin, async (req, res) => {
   try {
+    // Loại bỏ trường password khi gửi về Client để bảo mật
     const users = await User.find().select("-password").sort({ createdAt: -1 });
-    res.json(users);
+    res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Lỗi server khi lấy danh sách user" });
   }
 });
 
-router.put("/users/:id", isAdmin, async (req, res) => {
+// Cập nhật thông tin/quyền User (Admin)
+router.put("/users/:id", protect, isAdmin, async (req, res) => {
   try {
     const { name, email, phone, role, password } = req.body;
-    const user = await User.findById(req.params.id);
+    let user = await User.findById(req.params.id);
     
     if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
 
@@ -112,98 +119,25 @@ router.put("/users/:id", isAdmin, async (req, res) => {
     user.email = email || user.email;
     user.phone = phone || user.phone;
     user.role = role || user.role;
-    if (password && password.trim() !== "") user.password = password;
+    if (password) user.password = password; // Chỉ cập nhật pass nếu admin có nhập
 
     await user.save();
     
-    const userResponse = await User.findById(req.params.id).select("-password");
-    res.json({ message: "Cập nhật thành công", user: userResponse });
+    // Ẩn password trước khi trả data về frontend
+    user.password = undefined; 
+    res.json({ message: "Cập nhật thành công", user });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Lỗi cập nhật user" });
   }
 });
 
-router.delete("/users/:id", isAdmin, async (req, res) => {
+// Xóa User (Admin)
+router.delete("/users/:id", protect, isAdmin, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "Đã xóa tài khoản" });
+    res.json({ message: "Xóa user thành công" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}); 
-
-router.post("/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "Email không tồn tại trong hệ thống!" });
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.resetOtp = otp;
-    user.resetOtpExpire = Date.now() + 5 * 60 * 1000; 
-    await user.save();
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "hoitruongzero@gmail.com",
-        pass: "dhfj erbk drys pkml",
-      },
-    });
-
-    const mailOptions = {
-      from: '"MTK FastFood" <hoitruongzero@gmail.com>',
-      to: user.email,
-      subject: "Mã Xác Nhận OTP - MTK FastFood",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-w: 500px; margin: auto; padding: 30px; border: 1px solid #ddd; border-radius: 15px; text-align: center;">
-          <h2 style="color: #FF4747;">MTK FastFood</h2>
-          <p>Mã OTP để đặt lại mật khẩu của bạn là:</p>
-          <h1 style="color: #FF4747; letter-spacing: 5px; background: #FFF0F0; padding: 15px; border-radius: 10px; display: inline-block;">${otp}</h1>
-          <p>Mã có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này.</p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ message: "Mã OTP 6 số đã được gửi tới email của bạn!" });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi hệ thống khi gửi email." });
-  }
-});
-
-router.post("/verify-otp", async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email });
-    
-    if (!user) return res.status(404).json({ message: "Người dùng không tồn tại!" });
-    if (user.resetOtp !== otp) return res.status(400).json({ message: "Mã OTP không chính xác!" });
-    if (user.resetOtpExpire < Date.now()) return res.status(400).json({ message: "Mã OTP đã hết hạn!" });
-
-    res.json({ message: "Xác nhận OTP thành công! Vui lòng nhập mật khẩu mới." });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi hệ thống." });
-  }
-});
-
-router.post("/reset-password", async (req, res) => {
-  try {
-    const { email, otp, newPassword } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user || user.resetOtp !== otp || user.resetOtpExpire < Date.now()) {
-      return res.status(400).json({ message: "Yêu cầu không hợp lệ. Vui lòng thử lại từ đầu." });
-    }
-
-    user.password = newPassword;
-    user.resetOtp = undefined;
-    user.resetOtpExpire = undefined;
-    await user.save();
-
-    res.json({ message: "Đổi mật khẩu thành công!" });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi hệ thống." });
+    res.status(500).json({ message: "Lỗi khi xóa user" });
   }
 });
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import { GoogleLogin } from '@react-oauth/google'; // 👉 IMPORT GOOGLE LOGIN
 import { SERVER_URL } from "../config";
 import "../styles/auth.css";
 
@@ -33,6 +34,36 @@ const AuthPage = ({ setUser }) => {
       setRemember(true);
     }
   }, []);
+
+  // ================== GOOGLE LOGIN HANDLER (NEW) ==================
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoginLoading(true);
+      // Gửi token Google xuống Backend để xác thực và tạo/lấy JWT của hệ thống
+      const response = await axios.post(`${SERVER_URL}/api/auth/google`, {
+        credential: credentialResponse.credential
+      });
+
+      const { token, user } = response.data;
+      
+      // Lưu token và user info
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+
+      // Hiển thị màn hình chào mừng
+      setShowSuccess(true);
+      setTimeout(() => {
+        if (user.role === "admin") navigate("/admin");
+        else navigate("/");
+      }, 1800);
+
+    } catch (error) {
+      console.error("Lỗi Google Login:", error);
+      setLoginError("Đăng nhập Google thất bại. Vui lòng thử lại!");
+      setLoginLoading(false);
+    }
+  };
 
   // ================== LOGIN HANDLERS ==================
   const handleLoginChange = (e) => {
@@ -195,7 +226,7 @@ const AuthPage = ({ setUser }) => {
                   initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.4 }}
                   className="w-full max-w-md"
                 >
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <h2 className="text-3xl font-black text-white mb-2">Đăng nhập</h2>
                     <p className="text-orange-200 text-sm">Đăng nhập để đặt món nhanh hơn 🍔</p>
                   </div>
@@ -222,6 +253,29 @@ const AuthPage = ({ setUser }) => {
                     </button>
                   </form>
 
+                  {/* 👉 NÚT GOOGLE LOGIN Ở ĐÂY */}
+                  <div className="mt-6 flex flex-col items-center">
+                    <div className="w-full flex items-center gap-3 mb-4">
+                      <div className="flex-1 h-px bg-white/10"></div>
+                      <span className="text-gray-400 text-sm">Hoặc</span>
+                      <div className="flex-1 h-px bg-white/10"></div>
+                    </div>
+                    
+                    <div className="w-full flex justify-center">
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => {
+                          console.error('Google Login Failed');
+                          setLoginError("Lỗi kết nối Google. Vui lòng thử lại!");
+                        }}
+                        theme="outline"
+                        size="large"
+                        text="signin_with"
+                        shape="rectangular"
+                      />
+                    </div>
+                  </div>
+
                   <p className="text-center text-gray-300 text-sm mt-8">
                     Chưa có tài khoản?{" "}
                     <button onClick={() => setIsLogin(false)} className="text-orange-400 font-black hover:text-orange-300 transition hover:underline">
@@ -232,13 +286,13 @@ const AuthPage = ({ setUser }) => {
 
               ) : (
 
-                // =============== FORM ĐĂNG KÝ =================
+                // Đăng Ký
                 <motion.div 
                   key="register"
                   initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} transition={{ duration: 0.4 }}
                   className="w-full max-w-md"
                 >
-                  <div className="text-center mb-8">
+                  <div className="text-center mb-6">
                     <h2 className="text-3xl font-black text-white mb-2">Tạo Tài Khoản</h2>
                     <p className="text-orange-200 text-sm">Tham gia đại gia đình MTK ngay hôm nay 🌭</p>
                   </div>
@@ -248,6 +302,27 @@ const AuthPage = ({ setUser }) => {
                       ⚠️ {registerError}
                     </motion.div>
                   )}
+
+                  {/*NÚT GOOGLE ĐĂNG KÝ NHANH Ở ĐÂY */}
+                  <div className="mb-4 flex flex-col items-center">
+                     <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => {
+                          console.error('Google Register Failed');
+                          setRegisterError("Lỗi kết nối Google. Vui lòng thử lại!");
+                        }}
+                        theme="outline"
+                        size="large"
+                        text="signup_with"
+                        shape="rectangular"
+                      />
+                      
+                      <div className="w-full flex items-center gap-3 mt-4 mb-2">
+                        <div className="flex-1 h-px bg-white/10"></div>
+                        <span className="text-gray-400 text-xs uppercase tracking-widest">Đăng ký thủ công</span>
+                        <div className="flex-1 h-px bg-white/10"></div>
+                      </div>
+                  </div>
 
                   <form onSubmit={handleRegister} className="space-y-3">
                     <input type="text" name="name" placeholder="Họ và tên" value={registerData.name} onChange={handleRegisterChange} required className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-orange-400 transition" />

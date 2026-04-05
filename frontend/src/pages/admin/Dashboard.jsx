@@ -51,8 +51,29 @@ export default function Dashboard() {
     return { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } };
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  // 👉 HÀM XỬ LÝ LỖI CHUNG (TỰ ĐỘNG VĂNG NẾU TOKEN HẾT HẠN HOẶC SAI)
+  const handleApiError = (error, context) => {
+    console.error(`Lỗi API tại [${context}]:`, error);
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      alert("Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại!");
+      handleLogout();
+    }
+  };
+
   // Lifecycle
   useEffect(() => {
+    // Kiểm tra nhanh xem có token không, không có thì sút ra ngoài ngay
+    if (!localStorage.getItem("token")) {
+      handleLogout();
+      return;
+    }
+
     fetchProducts();
     fetchUsers();
     fetchOrders();
@@ -83,20 +104,20 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Fetch Methods
-  const fetchProducts = async () => { try { const res = await axios.get(API_URL); setProducts(res.data); } catch (e) {} };
-  const fetchUsers = async () => { try { const res = await axios.get(USER_API_URL, getAuthHeader()); setUsers(res.data); } catch (e) {} };
-  const fetchOrders = async () => { try { const res = await axios.get(ORDER_API_URL, getAuthHeader()); setOrders(res.data); } catch (e) {} };
-  const fetchBanners = async () => { try { const res = await axios.get(BANNER_API_URL, getAuthHeader()); setBanners(res.data); } catch (e) {} };
-  const fetchTableOrders = async () => { try { const res = await axios.get(TABLE_ORDER_API_URL, getAuthHeader()); setTableOrders(res.data); } catch (e) {} };
-  const fetchRestaurantTables = async () => { try { const res = await axios.get(`${SERVER_URL}/api/tables`); setRestaurantTables(res.data); } catch(e){} };
+  // Fetch Methods có bắt lỗi 401
+  const fetchProducts = async () => { try { const res = await axios.get(API_URL); setProducts(res.data); } catch (e) { console.error("Lỗi lấy sản phẩm", e); } };
+  const fetchUsers = async () => { try { const res = await axios.get(USER_API_URL, getAuthHeader()); setUsers(res.data); } catch (e) { handleApiError(e, "Users"); } };
+  const fetchOrders = async () => { try { const res = await axios.get(ORDER_API_URL, getAuthHeader()); setOrders(res.data); } catch (e) { handleApiError(e, "Orders"); } };
+  const fetchBanners = async () => { try { const res = await axios.get(BANNER_API_URL, getAuthHeader()); setBanners(res.data); } catch (e) { handleApiError(e, "Banners"); } };
+  const fetchTableOrders = async () => { try { const res = await axios.get(TABLE_ORDER_API_URL, getAuthHeader()); setTableOrders(res.data); } catch (e) { handleApiError(e, "Table Orders"); } };
+  const fetchRestaurantTables = async () => { try { const res = await axios.get(`${SERVER_URL}/api/tables`); setRestaurantTables(res.data); } catch(e){ console.error("Lỗi lấy Sơ đồ bàn", e); } };
 
   // Order Handlers
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
       await axios.put(`${ORDER_API_URL}/${orderId}/status`, { status: newStatus }, getAuthHeader());
       setOrders(orders.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
-    } catch (e) { alert("Lỗi cập nhật trạng thái!"); }
+    } catch (e) { handleApiError(e, "Update Order"); }
   };
 
   const handleDeleteOrder = async (orderId) => {
@@ -105,7 +126,7 @@ export default function Dashboard() {
         await axios.delete(`${ORDER_API_URL}/${orderId}`, getAuthHeader());
         setOrders(orders.filter(o => o._id !== orderId));
         setSelectedOrder(null); 
-      } catch (e) { alert("Lỗi xóa đơn hàng."); }
+      } catch (e) { handleApiError(e, "Delete Order"); }
     }
   };
 
@@ -114,14 +135,14 @@ export default function Dashboard() {
     try {
       await axios.put(`${TABLE_ORDER_API_URL}/${id}/status`, { status: newStatus }, getAuthHeader());
       setTableOrders(tableOrders.map(t => t._id === id ? { ...t, status: newStatus } : t));
-    } catch (e) { alert("Lỗi cập nhật trạng thái đặt bàn!"); }
+    } catch (e) { handleApiError(e, "Update Table Order"); }
   };
 
   const handleToggleTable = async (tableId) => {
     try {
       const res = await axios.put(`${SERVER_URL}/api/tables/${tableId}/toggle`, {}, getAuthHeader());
       setRestaurantTables(restaurantTables.map(t => t._id === tableId ? res.data : t));
-    } catch (e) { alert("Lỗi cập nhật bàn"); }
+    } catch (e) { handleApiError(e, "Toggle Table"); }
   };
 
   // Product Handlers
@@ -150,13 +171,15 @@ export default function Dashboard() {
         setProducts([res.data, ...products]);
       }
       setIsModalOpen(false);
-    } catch (e) { alert("Lỗi lưu sản phẩm"); }
+    } catch (e) { handleApiError(e, "Save Product"); }
   };
 
   const handleDeleteProduct = async (id) => { 
     if (window.confirm("Xác nhận xóa sản phẩm?")) { 
-      await axios.delete(`${API_URL}/${id}`, getAuthHeader()); 
-      setProducts(products.filter(p => p._id !== id)); 
+      try {
+        await axios.delete(`${API_URL}/${id}`, getAuthHeader()); 
+        setProducts(products.filter(p => p._id !== id)); 
+      } catch(e) { handleApiError(e, "Delete Product"); }
     } 
   };
 
@@ -175,13 +198,15 @@ export default function Dashboard() {
       const res = await axios.put(`${USER_API_URL}/${editingUser._id}`, dataToSend, getAuthHeader());
       setUsers(users.map(u => u._id === editingUser._id ? res.data.user : u));
       setIsUserModalOpen(false);
-    } catch (e) { alert("Lỗi cập nhật người dùng"); }
+    } catch (e) { handleApiError(e, "Update User"); }
   };
 
   const handleDeleteUser = async (id) => { 
     if (window.confirm("Xác nhận xóa tài khoản?")) { 
-      await axios.delete(`${USER_API_URL}/${id}`, getAuthHeader()); 
-      setUsers(users.filter(u => u._id !== id)); 
+      try {
+        await axios.delete(`${USER_API_URL}/${id}`, getAuthHeader()); 
+        setUsers(users.filter(u => u._id !== id)); 
+      } catch(e) { handleApiError(e, "Delete User"); }
     } 
   };
 
@@ -210,13 +235,15 @@ export default function Dashboard() {
         setBanners([res.data, ...banners]);
       }
       setIsBannerModalOpen(false);
-    } catch (e) { alert("Lỗi lưu banner"); }
+    } catch (e) { handleApiError(e, "Save Banner"); }
   };
 
   const handleDeleteBanner = async (id) => {
     if (window.confirm("Xác nhận xóa banner?")) {
-      await axios.delete(`${BANNER_API_URL}/${id}`, getAuthHeader());
-      setBanners(banners.filter(b => b._id !== id));
+      try {
+        await axios.delete(`${BANNER_API_URL}/${id}`, getAuthHeader());
+        setBanners(banners.filter(b => b._id !== id));
+      } catch(e) { handleApiError(e, "Delete Banner"); }
     }
   };
 
@@ -224,7 +251,7 @@ export default function Dashboard() {
     try {
       const res = await axios.put(`${BANNER_API_URL}/${banner._id}`, { ...banner, isActive: !banner.isActive }, getAuthHeader());
       setBanners(banners.map(b => b._id === banner._id ? res.data : b));
-    } catch(e) { alert("Lỗi cập nhật trạng thái"); }
+    } catch(e) { handleApiError(e, "Toggle Banner"); }
   };
 
   // Chat Handlers
@@ -251,10 +278,22 @@ export default function Dashboard() {
     setReplyMsg("");
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+  // 👉 HÀM CHỦ ĐỘNG CHAT VỚI USER TỪ TAB KHÁCH HÀNG
+  const handleInitiateChat = (user) => {
+    const targetId = user._id;
+
+    if (!clients[targetId]) {
+      setClients((prev) => ({
+        ...prev,
+        [targetId]: { 
+          name: user.name, 
+          messages: [] 
+        }
+      }));
+    }
+
+    setActiveClient(targetId);
+    setActiveTab("chat");
   };
 
   // Utils
@@ -282,7 +321,7 @@ export default function Dashboard() {
   // Analytics Data
   const totalRevenue = orders.filter(o => o.status === "Đã giao").reduce((sum, o) => sum + o.totalAmount, 0);
   const totalOrdersCount = orders.length;
-  const totalUsersCount = users.filter(u => u.role === "user").length;
+  const totalUsersCount = users.length; // Hiển thị tất cả user
 
   const COLORS = ['#FBBF24', '#60A5FA', '#A78BFA', '#34D399', '#F87171', '#9CA3AF'];
   const orderStatusData = [
@@ -543,7 +582,7 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* 👉 CẬP NHẬT TAB ĐƠN HÀNG */}
+          {/* ĐƠN HÀNG */}
           {activeTab === "orders" && (
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl overflow-hidden w-full">
               <div className="overflow-x-auto w-full">
@@ -572,7 +611,6 @@ export default function Dashboard() {
                         <td className="p-4 text-center">
                           <select value={o.status} onChange={(e) => handleUpdateOrderStatus(o._id, e.target.value)}
                             className="border border-white/20 bg-white/5 px-2 py-1.5 rounded-lg text-xs font-medium outline-none cursor-pointer text-white focus:border-orange-500">
-                            {/* THÊM OPTION CHỜ THANH TOÁN VÀO ĐÂY ĐỂ TRÁNH LỖI HIỂN THỊ */}
                             <option value="Chờ thanh toán" className="bg-gray-900">Chờ thanh toán</option>
                             <option value="Chờ xác nhận" className="bg-gray-900">Chờ xác nhận</option>
                             <option value="Đang chuẩn bị" className="bg-gray-900">Đang chuẩn bị</option>
@@ -583,7 +621,6 @@ export default function Dashboard() {
                         </td>
                         <td className="p-4 text-center">
                           <div className="flex justify-center gap-2">
-                            {/* NÚT XÁC NHẬN ĐÃ NHẬN TIỀN (Chỉ hiện khi đơn đang chờ thanh toán) */}
                             {o.status === "Chờ thanh toán" && (
                               <button 
                                 onClick={() => handleUpdateOrderStatus(o._id, "Đang chuẩn bị")} 
@@ -739,45 +776,54 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Users */}
+          {/* 👉 CẬP NHẬT TAB USERS (CÓ THÊM NÚT CHAT) */}
           {activeTab === "users" && (
             <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl overflow-hidden w-full">
               <div className="overflow-x-auto w-full">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                   <thead className="bg-white/5 border-b border-white/10 text-gray-400 uppercase text-xs">
-                    <tr>
-                      <th className="p-4 font-bold">Tài Khoản</th>
-                      <th className="p-4 font-bold">Liên Hệ</th>
-                      <th className="p-4 font-bold text-center">Phân Quyền</th>
-                      <th className="p-4 font-bold text-center">Thao Tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/10">
-                    {users.map((u) => (
-                      <tr key={u._id} className="hover:bg-white/5">
-                        <td className="p-4 flex items-center gap-3">
-                          <img src={getImageUrl(u.avatar)} onError={(e) => handleAvatarError(e, u.name)} className="w-8 h-8 rounded-full border border-white/10" alt=""/>
-                          <div>
-                            <div className="font-bold text-white">{u.name}</div>
-                            <div className="text-xs text-gray-400">@{u.username}</div>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <div className="text-white">{u.email}</div>
-                          <div className="text-gray-400 text-xs mt-1">{u.phone}</div>
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${u.role === "admin" ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-blue-500/20 text-blue-300 border-blue-500/30"}`}>
-                            {u.role.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          <button onClick={() => handleEditUserClick(u)} className="text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-lg font-medium transition-colors">Sửa</button>
-                        </td>
+                {users.length === 0 ? (
+                   <div className="p-8 text-center text-gray-400 italic">Đang tải hoặc không có dữ liệu khách hàng</div>
+                ) : (
+                  <table className="w-full text-left text-sm whitespace-nowrap">
+                    <thead className="bg-white/5 border-b border-white/10 text-gray-400 uppercase text-xs">
+                      <tr>
+                        <th className="p-4 font-bold">Tài Khoản</th>
+                        <th className="p-4 font-bold">Liên Hệ</th>
+                        <th className="p-4 font-bold text-center">Phân Quyền</th>
+                        <th className="p-4 font-bold text-center">Thao Tác</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      {users.map((u) => (
+                        <tr key={u._id} className="hover:bg-white/5">
+                          <td className="p-4 flex items-center gap-3">
+                            <img src={getImageUrl(u.avatar)} onError={(e) => handleAvatarError(e, u.name)} className="w-8 h-8 rounded-full border border-white/10" alt=""/>
+                            <div>
+                              <div className="font-bold text-white">{u.name}</div>
+                              <div className="text-xs text-gray-400">@{u.username || "user"}</div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="text-white">{u.email}</div>
+                            <div className="text-gray-400 text-xs mt-1">{u.phone || "Chưa cập nhật SĐT"}</div>
+                          </td>
+                          <td className="p-4 text-center">
+                            <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${u.role === "admin" ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-blue-500/20 text-blue-300 border-blue-500/30"}`}>
+                              {u.role.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button onClick={() => handleEditUserClick(u)} className="text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-lg font-medium transition-colors">Sửa</button>
+                            
+                            {/* NÚT CHAT MỚI THÊM VÀO */}
+                            <button onClick={() => handleInitiateChat(u)} className="text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-lg font-medium transition-colors ml-2">Chat</button>
+                            
+                            <button onClick={() => handleDeleteUser(u._id)} className="text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 px-3 py-1.5 rounded-lg font-medium transition-colors ml-2">Xóa</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}

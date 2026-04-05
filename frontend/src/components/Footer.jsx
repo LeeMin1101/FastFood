@@ -107,7 +107,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Footer with Glass Effect */}
-        <motion.div 
+        {/* <motion.div 
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
@@ -136,7 +136,7 @@ const Footer = () => {
               Visa / Master
             </motion.span>
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </footer>
   );
