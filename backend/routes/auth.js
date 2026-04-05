@@ -76,6 +76,54 @@ router.post("/login", async (req, res) => {
 // API Login bằng Google
 router.post("/google", googleLogin);
 
+// API Quên mật khẩu (Gửi pass mới qua Email)
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Email này chưa được đăng ký trong hệ thống!" });
+    }
+
+    // Tạo mật khẩu mới ngẫu nhiên 8 ký tự
+    const newPassword = Math.random().toString(36).slice(-8);
+    
+    user.password = newPassword;
+    await user.save();
+
+    // Cấu hình gửi mail
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS 
+      }
+    });
+
+    const mailOptions = {
+      from: `"MTK FastFood" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "🍔 MTK FastFood - Cấp lại mật khẩu mới",
+      html: `
+        <h3>Chào ${user.name},</h3>
+        <p>Bạn vừa yêu cầu cấp lại mật khẩu tại MTK FastFood.</p>
+        <p>🔑 Mật khẩu mới của bạn là: <strong style="color: red; font-size: 18px;">${newPassword}</strong></p>
+        <p>Vui lòng đăng nhập lại bằng mật khẩu này nhé!</p>
+        <br/>
+        <p>Trân trọng,<br/>Đội ngũ MTK FastFood</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Mật khẩu mới đã được gửi vào Email của bạn. Vui lòng kiểm tra hộp thư!" });
+
+  } catch (error) {
+    console.error("Lỗi gửi email:", error);
+    res.status(500).json({ message: "Lỗi server khi gửi email cấp lại mật khẩu." });
+  }
+});
+
 // API Cập nhật Profile cá nhân (User)
 router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   try {
@@ -93,13 +141,12 @@ router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
 
 
 // =========================================================
-// API DÀNH CHO ADMIN (Quản lý Khách hàng trên Dashboard)
+// API DÀNH CHO ADMIN
 // =========================================================
 
 // Lấy danh sách tất cả Users
 router.get("/users", protect, isAdmin, async (req, res) => {
   try {
-    // Loại bỏ trường password khi gửi về Client để bảo mật
     const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (error) {
@@ -119,11 +166,10 @@ router.put("/users/:id", protect, isAdmin, async (req, res) => {
     user.email = email || user.email;
     user.phone = phone || user.phone;
     user.role = role || user.role;
-    if (password) user.password = password; // Chỉ cập nhật pass nếu admin có nhập
+    if (password) user.password = password;
 
     await user.save();
     
-    // Ẩn password trước khi trả data về frontend
     user.password = undefined; 
     res.json({ message: "Cập nhật thành công", user });
   } catch (error) {
