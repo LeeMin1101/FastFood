@@ -9,7 +9,6 @@ const nodemailer = require("nodemailer");
 const { protect, isAdmin } = require("../middlewares/authMiddleware");
 const { googleLogin } = require("../controllers/authController");
 
-// Cấu hình Multer upload avatar
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -20,7 +19,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// API Đăng ký
 router.post("/register", async (req, res) => {
   try {
     const { name, username, email, phone, password } = req.body;
@@ -39,7 +37,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// API Đăng nhập
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -73,10 +70,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// API Login bằng Google
 router.post("/google", googleLogin);
 
-// API Quên mật khẩu (Gửi pass mới qua Email)
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -86,18 +81,20 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(404).json({ message: "Email này chưa được đăng ký trong hệ thống!" });
     }
 
-    // Tạo mật khẩu mới ngẫu nhiên 8 ký tự
     const newPassword = Math.random().toString(36).slice(-8);
-    
     user.password = newPassword;
     await user.save();
 
-    // Cấu hình gửi mail
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS 
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
 
@@ -124,7 +121,6 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// API Cập nhật Profile cá nhân (User)
 router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   try {
     const { name, phone } = req.body;
@@ -139,12 +135,6 @@ router.put("/profile", protect, upload.single("avatar"), async (req, res) => {
   }
 });
 
-
-// =========================================================
-// API DÀNH CHO ADMIN
-// =========================================================
-
-// Lấy danh sách tất cả Users
 router.get("/users", protect, isAdmin, async (req, res) => {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
@@ -154,7 +144,6 @@ router.get("/users", protect, isAdmin, async (req, res) => {
   }
 });
 
-// Cập nhật thông tin/quyền User (Admin)
 router.put("/users/:id", protect, isAdmin, async (req, res) => {
   try {
     const { name, email, phone, role, password } = req.body;
@@ -177,7 +166,6 @@ router.put("/users/:id", protect, isAdmin, async (req, res) => {
   }
 });
 
-// Xóa User (Admin)
 router.delete("/users/:id", protect, isAdmin, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);

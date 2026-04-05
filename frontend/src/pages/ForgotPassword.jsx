@@ -7,7 +7,7 @@ import { SERVER_URL } from "../config";
 const ForgotPassword = () => {
   const navigate = useNavigate();
   
-  const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Password mới
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -17,15 +17,18 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  // Bước 1: Gửi Email nhận OTP
   const handleSendEmail = async (e) => {
     e.preventDefault();
-    setIsLoading(true); setMessage(""); setError("");
+    setIsLoading(true); 
+    setMessage(""); 
+    setError("");
+
     try {
       const res = await axios.post(`${SERVER_URL}/api/auth/forgot-password`, { email });
       setMessage(res.data.message);
-      setStep(2);
-      setError("");
+      // Giữ nguyên ở Bước 1 vì hệ thống mới chỉ gửi thẳng mật khẩu vào Email
+      // Nếu bạn muốn hiển thị thông báo thành công và chuyển về trang đăng nhập:
+      setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
       setError(err.response?.data?.message || "Lỗi gửi email!");
     } finally {
@@ -33,15 +36,16 @@ const ForgotPassword = () => {
     }
   };
 
-  // Bước 2: Xác nhận OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
-    setIsLoading(true); setMessage(""); setError("");
+    setIsLoading(true); 
+    setMessage(""); 
+    setError("");
+
     try {
       const res = await axios.post(`${SERVER_URL}/api/auth/verify-otp`, { email, otp });
       setMessage(res.data.message);
       setStep(3);
-      setError("");
     } catch (err) {
       setError(err.response?.data?.message || "Mã OTP không hợp lệ.");
     } finally {
@@ -49,13 +53,15 @@ const ForgotPassword = () => {
     }
   };
 
-  // Bước 3: Đổi mật khẩu
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) return setError("Mật khẩu nhập lại không khớp!");
     if (newPassword.length < 6) return setError("Mật khẩu phải có ít nhất 6 ký tự!");
 
-    setIsLoading(true); setMessage(""); setError("");
+    setIsLoading(true); 
+    setMessage(""); 
+    setError("");
+
     try {
       const res = await axios.post(`${SERVER_URL}/api/auth/reset-password`, { email, otp, newPassword });
       setMessage(res.data.message);
@@ -75,14 +81,8 @@ const ForgotPassword = () => {
           to { opacity: 1; }
         }
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
         .animate-slideUp {
           animation: slideUp 0.6s ease-out;
@@ -108,9 +108,8 @@ const ForgotPassword = () => {
         }
       `}</style>
 
-      {/* LEFT SIDE - Marketing Section */}
+      {/* Left Marketing Section */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden flex-col justify-between p-12">
-        {/* Animated Background Elements */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-red-500/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse" style={{ animationDelay: "1s" }}></div>
 
@@ -150,10 +149,9 @@ const ForgotPassword = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE - Forgot Password Form */}
+      {/* Right Form Section */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md animate-slideUp">
-          {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
             <motion.img
               src="/img/MTK.png"
@@ -166,10 +164,7 @@ const ForgotPassword = () => {
             <h1 className="text-2xl font-black text-white">MTK</h1>
           </div>
 
-          {/* Form Card */}
           <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20">
-            
-            {/* STEP 1: NHẬP EMAIL */}
             {step === 1 && (
               <motion.form 
                 onSubmit={handleSendEmail}
@@ -178,7 +173,7 @@ const ForgotPassword = () => {
                 transition={{ duration: 0.4 }}
               >
                 <h2 className="text-3xl font-black text-white mb-2">Quên mật khẩu?</h2>
-                <p className="text-orange-100 mb-8">Nhập email để nhận mã OTP</p>
+                <p className="text-orange-100 mb-8">Nhập email để nhận mật khẩu mới</p>
 
                 {message && (
                   <motion.div
@@ -223,12 +218,11 @@ const ForgotPassword = () => {
                       : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 hover:shadow-lg hover:shadow-orange-500/50 text-white"
                   }`}
                 >
-                  {isLoading ? "Đang gửi..." : "Gửi mã xác nhận"}
+                  {isLoading ? "Đang gửi..." : "Gửi mật khẩu mới"}
                 </button>
               </motion.form>
             )}
 
-            {/* STEP 2: NHẬP OTP */}
             {step === 2 && (
               <motion.form
                 onSubmit={handleVerifyOTP}
@@ -291,7 +285,6 @@ const ForgotPassword = () => {
               </motion.form>
             )}
 
-            {/* STEP 3: ĐỔI MẬT KHẨU */}
             {step === 3 && (
               <motion.form
                 onSubmit={handleResetPassword}
@@ -366,7 +359,6 @@ const ForgotPassword = () => {
             )}
           </div>
 
-          {/* Bottom Navigation */}
           <div className="text-center mt-8">
             <Link
               to="/login"
