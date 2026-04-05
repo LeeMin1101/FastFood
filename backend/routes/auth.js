@@ -4,7 +4,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer"); // Tạm ẩn để dùng chế độ Demo
 
 const { protect, isAdmin } = require("../middlewares/authMiddleware");
 const { googleLogin } = require("../controllers/authController");
@@ -85,6 +85,7 @@ router.post("/forgot-password", async (req, res) => {
     user.password = newPassword;
     await user.save();
 
+    /* LOGIC GỬI MAIL (Đã được comment lại để xài Demo Bypass Port Render)
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
@@ -99,25 +100,32 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"MTK FastFood" <${process.env.EMAIL_USER}>`,
+      from: \`"MTK FastFood" <\${process.env.EMAIL_USER}>\`,
       to: user.email,
       subject: "🍔 MTK FastFood - Cấp lại mật khẩu mới",
-      html: `
-        <h3>Chào ${user.name},</h3>
+      html: \`
+        <h3>Chào \${user.name},</h3>
         <p>Bạn vừa yêu cầu cấp lại mật khẩu tại MTK FastFood.</p>
-        <p>🔑 Mật khẩu mới của bạn là: <strong style="color: red; font-size: 18px;">${newPassword}</strong></p>
+        <p>🔑 Mật khẩu mới của bạn là: <strong style="color: red; font-size: 18px;">\${newPassword}</strong></p>
         <p>Vui lòng đăng nhập lại bằng mật khẩu này nhé!</p>
         <br/>
         <p>Trân trọng,<br/>Đội ngũ MTK FastFood</p>
-      `
+      \`
     };
 
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "Mật khẩu mới đã được gửi vào Email của bạn. Vui lòng kiểm tra hộp thư!" });
+    */
+
+    // Logic Demo: Gửi thẳng mật khẩu mới về Frontend
+    res.status(200).json({ 
+      message: "Reset mật khẩu thành công!", 
+      newPassword: newPassword 
+    });
 
   } catch (error) {
-    console.error("Lỗi gửi email:", error);
-    res.status(500).json({ message: "Lỗi server khi gửi email cấp lại mật khẩu." });
+    console.error("Lỗi cấp lại mật khẩu:", error);
+    res.status(500).json({ message: "Lỗi server khi cấp lại mật khẩu." });
   }
 });
 
