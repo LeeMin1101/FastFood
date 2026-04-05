@@ -14,6 +14,10 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+
+// Cấu hình trust proxy để express-rate-limit hoạt động đúng trên Render
+app.set("trust proxy", 1);
+
 const server = http.createServer(app);
 
 const allowedOrigins = [
@@ -31,7 +35,8 @@ const io = new Server(server, {
 
 connectDB();
 
-app.use(helmet());
+// Cấu hình helmet cho phép Frontend lấy ảnh từ thư mục uploads
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
 app.use(cors({
   origin: allowedOrigins,
