@@ -29,47 +29,40 @@ export default function Banner() {
     fetchBanners();
   }, []);
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev === banners.length - 1 ? 0 : prev + 1));
-  };
+  const nextSlide = () =>
+    setCurrentIndex((prev) =>
+      prev === banners.length - 1 ? 0 : prev + 1
+    );
 
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-  };
+  const prevSlide = () =>
+    setCurrentIndex((prev) =>
+      prev === 0 ? banners.length - 1 : prev - 1
+    );
 
-useEffect(() => {
-  if (banners.length <= 1) return;
-  const interval = setInterval(() => {
-    setCurrentIndex(prev => (prev === banners.length - 1 ? 0 : prev + 1));
-  }, 4000);
-  return () => clearInterval(interval);
-}, [banners.length]);
+  useEffect(() => {
+    if (banners.length <= 1) return;
+    const interval = setInterval(nextSlide, 4000);
+    return () => clearInterval(interval);
+  }, [banners.length]);
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e) =>
     setTouchStart(e.targetTouches[0].clientX);
-  };
 
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (e) =>
     setTouchEnd(e.targetTouches[0].clientX);
-  };
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) nextSlide();
-    if (isRightSwipe) prevSlide();
-
+    if (distance > 50) nextSlide();
+    if (distance < -50) prevSlide();
     setTouchStart(0);
     setTouchEnd(0);
   };
 
   if (banners.length === 0) {
     return (
-      <div className="w-full bg-orange-100 flex items-center justify-center py-20 mt-4 rounded-3xl mx-auto max-w-7xl">
+      <div className="w-full bg-orange-100 flex items-center justify-center py-20">
         <h2 className="text-3xl font-black text-orange-500">
           MTK FastFood - Ngon Khó Cưỡng!
         </h2>
@@ -78,9 +71,9 @@ useEffect(() => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-      <div 
-        className="relative w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-3xl overflow-hidden shadow-lg group cursor-grab active:cursor-grabbing"
+    <div className="w-full">
+      <div
+        className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden group cursor-grab active:cursor-grabbing shadow-sm"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -91,7 +84,9 @@ useEffect(() => {
             src={getImageUrl(banner.image)}
             alt={banner.title}
             className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+              index === currentIndex
+                ? "opacity-100 z-10"
+                : "opacity-0 z-0 pointer-events-none"
             }`}
           />
         ))}
@@ -110,14 +105,14 @@ useEffect(() => {
           &gt;
         </button>
 
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${
+              className={`w-3 h-3 rounded-full transition-all shadow-md ${
                 index === currentIndex
-                  ? "bg-orange-500 w-6"
+                  ? "bg-orange-500 w-8"
                   : "bg-white/60 hover:bg-white"
               }`}
             />

@@ -14,7 +14,6 @@ export default function Menu() {
   const searchKeyword = searchParams.get("search") || "";
   const navigate = useNavigate();
 
-  // Gọi API lấy danh sách sản phẩm và tự động trích xuất danh mục
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -22,14 +21,10 @@ export default function Menu() {
         const data = response.data;
         setProducts(data);
 
-        // Tự động lọc ra các danh mục không trùng lặp từ dữ liệu sản phẩm
         let uniqueCategories = [...new Set(data.map(item => item.category))];
         
-        // XỬ LÝ ĐƯA GÀ RÁN LÊN ĐẦU
-        // Lưu ý: Tên này phải khớp 100% với tên danh mục bạn lưu trong Database (viết hoa/viết thường)
         const mainCategory = "Gà Rán"; 
         if (uniqueCategories.includes(mainCategory)) {
-          // Xóa Gà Rán ở vị trí cũ và chèn nó lên đầu mảng
           uniqueCategories = [
             mainCategory,
             ...uniqueCategories.filter(cat => cat !== mainCategory)
@@ -38,7 +33,6 @@ export default function Menu() {
 
         setCategories(uniqueCategories);
         
-        // Tự động chọn danh mục đầu tiên (lúc này chắc chắn là Gà Rán nếu quán có Gà Rán) làm mặc định
         if (uniqueCategories.length > 0) {
           setActiveCategory(uniqueCategories[0]);
         }
@@ -49,7 +43,6 @@ export default function Menu() {
     fetchProducts();
   }, []);
 
-  // Lọc sản phẩm: Nếu có tìm kiếm thì tìm toàn bộ, nếu không thì lọc theo danh mục
   const filteredProducts = products.filter((p) => {
     if (searchKeyword) {
       return p.name.toLowerCase().includes(searchKeyword.toLowerCase());
@@ -62,48 +55,53 @@ export default function Menu() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900 to-red-900 pt-32 pb-24 font-sans">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pt-32 pb-24 font-sans text-gray-800">
+      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Tiêu đề trang được Redesign */}
-        <div className="flex flex-col items-center justify-center mb-12">
-          <span className="text-orange-500 font-bold tracking-[0.3em] text-xs md:text-sm uppercase mb-4">
+        <div className="flex flex-col items-center justify-center mb-16">
+          <motion.span 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-orange-500 font-bold tracking-[0.3em] text-xs md:text-sm uppercase mb-4"
+          >
             Tinh hoa ẩm thực
-          </span>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-widest relative pb-6">
+          </motion.span>
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 uppercase tracking-tight relative pb-6"
+          >
             Thực Đơn
-            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-orange-500 to-red-600 rounded-full"></span>
-          </h1>
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1.5 bg-orange-500 rounded-full"></div>
+          </motion.h1>
         </div>
 
-        {/* Thông báo kết quả tìm kiếm (Ưu tiên hiển thị nếu có search) */}
         {searchKeyword ? (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-10 flex flex-col sm:flex-row items-center justify-between bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-4 shadow-xl gap-4"
+            className="mb-12 flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-200 rounded-2xl px-8 py-5 shadow-sm gap-4"
           >
-            <h2 className="text-lg md:text-xl font-bold text-white text-center sm:text-left">
-              Kết quả tìm kiếm: <span className="text-orange-400">"{searchKeyword}"</span>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900 text-center sm:text-left">
+              Kết quả tìm kiếm: <span className="text-orange-500">"{searchKeyword}"</span>
             </h2>
             <button 
               onClick={clearSearch} 
-              className="text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-6 py-2.5 rounded-xl transition-colors"
+              className="text-sm font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 px-6 py-3 rounded-xl transition-all duration-300"
             >
               Hủy tìm kiếm
             </button>
           </motion.div>
         ) : (
-          /* Bộ lọc danh mục mới (Chỉ hiện khi không tìm kiếm) */
-          <div className="flex overflow-x-auto hide-scrollbar justify-start md:justify-center gap-3 mb-12 pb-2">
+          <div className="flex overflow-x-auto hide-scrollbar justify-start md:justify-center gap-3 mb-16 pb-4">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-7 py-3 rounded-full font-bold text-sm tracking-wide whitespace-nowrap transition-all duration-300 ${
+                className={`px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider whitespace-nowrap transition-all duration-300 ${
                   activeCategory === cat 
-                    ? "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30" 
-                    : "bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"
+                    ? "bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30 border-transparent" 
+                    : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 }`}
               >
                 {cat}
@@ -112,24 +110,32 @@ export default function Menu() {
           </div>
         )}
 
-        {/* Danh sách sản phẩm */}
         {filteredProducts.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center py-24 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl"
+            className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm"
           >
-            <h3 className="text-2xl font-bold text-white mb-2">Không tìm thấy món ăn</h3>
-            <p className="text-gray-400 text-center max-w-md">
-              Rất tiếc, chúng tôi không tìm thấy món ăn nào phù hợp với yêu cầu của bạn.
+            <span className="text-6xl mb-6 opacity-40">🍔</span>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Không tìm thấy món ăn</h3>
+            <p className="text-gray-500 text-center max-w-md text-sm md:text-base">
+              Rất tiếc, chúng tôi không tìm thấy món ăn nào phù hợp với yêu cầu của bạn. Vui lòng thử lại với từ khóa khác.
             </p>
+            {searchKeyword && (
+              <button 
+                onClick={clearSearch} 
+                className="mt-8 border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-full font-bold hover:bg-gray-900 hover:text-white transition-colors duration-300"
+              >
+                Xem Toàn Bộ Thực Đơn
+              </button>
+            )}
           </motion.div>
         ) : (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
           >
             {filteredProducts.map((product, idx) => (
               <motion.div
@@ -147,7 +153,6 @@ export default function Menu() {
         
       </main>
 
-      {/* CSS ẩn thanh cuộn ngang cho thanh danh mục trên điện thoại */}
       <style dangerouslySetInnerHTML={{__html: `
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

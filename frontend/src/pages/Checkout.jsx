@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
 import { clearCart } from "../redux/cartSlice"; 
 import { useNavigate, Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion"; // Đã thêm Framer Motion để tạo hiệu ứng trượt
 import axios from "axios";
 import { SERVER_URL } from "../config";
 
@@ -10,7 +11,6 @@ const Checkout = () => {
   const dispatch = useDispatch(); 
   const location = useLocation();
   
-  // Hứng dữ liệu nếu khách bấm "Mua Ngay" từ trang chi tiết
   const directItem = location.state?.directItem;
   const reduxCartItems = useSelector((state) => state.cart.items);
   const cartItems = directItem ? [directItem] : reduxCartItems;
@@ -20,66 +20,105 @@ const Checkout = () => {
   const totalAmount = subTotal + shippingFee;
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [isLocating, setIsLocating] = useState(false);
-  const [formData, setFormData] = useState({ fullName: "", phone: "", address: "", note: "" });
+  const [formData, setFormData] = useState({ fullName: "", phone: "", note: "" });
+
+  const [locations, setLocations] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+  
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+
+  const [addressData, setAddressData] = useState({
+    city: "",
+    district: "",
+    ward: "",
+    street: ""
+  });
 
   useEffect(() => {
+    // FIX LỖI SCROLL: Ép trình duyệt cuộn lên đầu trang ngay lập tức
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    
+    // Đảm bảo cuộn lên đầu một lần nữa sau khi render để tránh lỗi của React Router
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 50);
+
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (savedUser) {
       setFormData(prev => ({ ...prev, fullName: savedUser.name || "", phone: savedUser.phone || "" }));
     }
+
+    // Tải dữ liệu Tỉnh/Thành
+    axios.get("https://provinces.open-api.vn/api/?depth=3")
+      .then(res => setLocations(res.data))
+      .catch(err => console.error("Lỗi tải dữ liệu địa lý:", err));
   }, []);
 
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleStreetChange = (e) => setAddressData({ ...addressData, street: e.target.value });
 
-  const handleAutoLocate = () => {
-    setIsLocating(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
-            const address = res.data.address;
-            const exactLocation = [address.house_number, address.road || address.pedestrian, address.suburb || address.village, address.county || address.city_district, address.city || address.province].filter(Boolean).join(", ");
-            setFormData(prev => ({ ...prev, address: exactLocation }));
-          } catch (error) {
-            alert("Không thể dịch được địa chỉ, vui lòng nhập tay.");
-          } finally { setIsLocating(false); }
-        },
-        () => { alert("Bạn chưa cấp quyền vị trí!"); setIsLocating(false); }
-      );
-    } else { alert("Trình duyệt không hỗ trợ định vị."); setIsLocating(false); }
+  const handleCityChange = (e) => {
+    const cityCode = e.target.value;
+    setSelectedCity(cityCode);
+    setSelectedDistrict("");
+    setSelectedWard("");
+    
+    const city = locations.find(c => String(c.code) === String(cityCode));
+    setDistricts(city?.districts || []);
+    setWards([]);
+    setAddressData({ ...addressData, city: city?.name || "", district: "", ward: "" });
+  };
+
+  const handleDistrictChange = (e) => {
+    const districtCode = e.target.value;
+    setSelectedDistrict(districtCode);
+    setSelectedWard("");
+    
+    const district = districts.find(d => String(d.code) === String(districtCode));
+    setWards(district?.wards || []);
+    setAddressData({ ...addressData, district: district?.name || "", ward: "" });
+  };
+
+  const handleWardChange = (e) => {
+    const wardCode = e.target.value;
+    setSelectedWard(wardCode);
+    
+    const ward = wards.find(w => String(w.code) === String(wardCode));
+    setAddressData({ ...addressData, ward: ward?.name || "" });
   };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) return alert("Giỏ hàng của bạn đang trống!");
+    if (!addressData.city || !addressData.district || !addressData.ward || !addressData.street) {
+      return alert("Vui lòng điền đầy đủ và chính xác Tỉnh/Thành, Quận/Huyện, Phường/Xã và Số nhà!");
+    }
     
     const savedUser = JSON.parse(localStorage.getItem("user"));
+    const fullAddress = `${addressData.street}, ${addressData.ward}, ${addressData.district}, ${addressData.city}`;
     
     const orderData = {
       userId: savedUser ? savedUser.id : null,
-      customer: formData,
+      customer: { ...formData, address: fullAddress },
       items: cartItems.map(item => ({ name: item.name, price: item.price, quantity: item.quantity, image: item.image })),
       totalAmount: totalAmount,
       paymentMethod: paymentMethod,
-      // ĐỔI TRẠNG THÁI: Nếu chọn QR thì trạng thái là Chờ thanh toán
       status: paymentMethod === "banking" ? "Chờ thanh toán" : "Chờ xác nhận"
     };
 
     try {
       const res = await axios.post(`${SERVER_URL}/api/orders`, orderData);
-      const newOrderId = res.data._id; // Lấy ID đơn hàng vừa tạo
+      const newOrderId = res.data._id;
 
-      // Chỉ xóa giỏ hàng nếu khách mua từ Giỏ (không phải bấm Mua Ngay)
       if (!directItem) dispatch(clearCart());
 
       if (paymentMethod === "banking") {
-        // BAY SANG TRANG QR VÀ MANG THEO ID ĐƠN HÀNG + TỔNG TIỀN
         navigate(`/payment-qr/${newOrderId}`, { state: { amount: totalAmount } });
       } else {
-        alert("🎉 Đặt hàng thành công! Đơn hàng của bạn đang được xử lý.");
+        alert("Thanh toán thành công! Đơn hàng của bạn đang được xử lý.");
         navigate(savedUser ? "/profile" : "/");
       }
     } catch (error) {
@@ -88,96 +127,187 @@ const Checkout = () => {
   };
 
   if (cartItems.length === 0) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center">
-      <h2 className="text-2xl font-bold text-white mb-4">Giỏ hàng của bạn đang trống</h2>
-      <Link to="/" className="bg-orange-500 text-white px-6 py-3 rounded-full font-bold">Quay lại mua sắm</Link>
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center">
+      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+        <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+      </div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Giỏ hàng của bạn đang trống</h2>
+      <Link to="/menu" className="bg-gray-900 hover:bg-black text-white px-10 py-4 rounded-full font-semibold transition-all shadow-md hover:-translate-y-0.5">Quay lại thực đơn</Link>
     </div>
   );
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <h1 className="text-4xl font-black text-white mb-8">Thanh Toán Đơn Hàng</h1>
-        <form onSubmit={handlePlaceOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-6">🛵 Thông tin giao hàng</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="min-h-screen bg-[#FAFAFA] pt-24 pb-20 font-sans text-gray-900 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* HIỆU ỨNG TRƯỢT XUỐNG CHO HEADER (TITLE) */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="flex flex-col items-center justify-center mb-10"
+        >
+          <span className="text-gray-500 font-bold tracking-[0.3em] text-xs md:text-sm uppercase mb-3">
+            Hoàn tất đơn hàng
+          </span>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 uppercase tracking-tight relative pb-5 inline-block">
+            Thanh Toán
+            {/* Đã thêm lại gạch chân bo tròn đúng format cũ */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1.5 bg-gray-900 rounded-full"></div>
+          </h1>
+        </motion.div>
+
+        {/* HIỆU ỨNG TRƯỢT LÊN CHO FORM */}
+        <motion.form 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+          onSubmit={handlePlaceOrder} 
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10"
+        >
+          
+          <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-8 h-8 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center text-sm">1</span>
+                Thông tin người nhận
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-200 mb-2">Họ và tên *</label>
-                  <input required type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500" />
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Họ và tên</label>
+                  <input required type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-200 mb-2">Số điện thoại *</label>
-                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500" />
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Số điện thoại</label>
+                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
                 </div>
-                <div className="md:col-span-2">
-                  <div className="flex justify-between items-end mb-2">
-                    <label className="block text-sm font-semibold text-gray-200">Địa chỉ *</label>
-                    <button type="button" onClick={handleAutoLocate} disabled={isLocating} className="text-xs text-orange-400">{isLocating ? "⏳ Đang định vị..." : "📍 Lấy vị trí"}</button>
+
+                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tỉnh / Thành phố</label>
+                    <select required value={selectedCity} onChange={handleCityChange} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all cursor-pointer">
+                      <option value="">Chọn Tỉnh/Thành</option>
+                      {locations.map(city => <option key={city.code} value={city.code}>{city.name}</option>)}
+                    </select>
                   </div>
-                  <input required type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500" />
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Quận / Huyện</label>
+                    <select required value={selectedDistrict} onChange={handleDistrictChange} disabled={districts.length === 0} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                      <option value="">Chọn Quận/Huyện</option>
+                      {districts.map(dist => <option key={dist.code} value={dist.code}>{dist.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phường / Xã</label>
+                    <select required value={selectedWard} onChange={handleWardChange} disabled={wards.length === 0} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                      <option value="">Chọn Phường/Xã</option>
+                      {wards.map(ward => <option key={ward.code} value={ward.code}>{ward.name}</option>)}
+                    </select>
+                  </div>
                 </div>
+
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-200 mb-2">Ghi chú (Tùy chọn)</label>
-                  <textarea name="note" value={formData.note} onChange={handleInputChange} rows="2" className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-orange-500"></textarea>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Số nhà, Tên đường</label>
+                  <input required type="text" value={addressData.street} onChange={handleStreetChange} placeholder="Ví dụ: 123 Lê Lợi..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all" />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ghi chú (Tùy chọn)</label>
+                  <textarea name="note" value={formData.note} onChange={handleInputChange} rows="2" placeholder="Giao giờ hành chính, gọi trước khi giao..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all resize-none"></textarea>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20">
-              <h2 className="text-xl font-bold text-white mb-6">💳 Phương thức thanh toán</h2>
+            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <span className="w-8 h-8 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center text-sm">2</span>
+                Phương thức thanh toán
+              </h2>
+              
               <div className="space-y-4">
-                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "cod" ? "border-orange-500 bg-orange-500/20" : "border-white/20"}`}>
-                  <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="w-5 h-5 text-orange-500" />
-                  <div className="ml-4 flex items-center gap-3">
-                    <span className="text-3xl">💵</span>
+                <label className={`flex items-center p-5 border rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === "cod" ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300 bg-white"}`}>
+                  <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="w-5 h-5 accent-gray-900" />
+                  <div className="ml-4 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-lg shadow-sm">💵</div>
                     <div>
-                      <p className="font-bold text-white">Thanh toán khi nhận hàng (COD)</p>
-                      <p className="text-sm text-gray-400">Thanh toán bằng tiền mặt khi Shipper giao tới.</p>
+                      <p className="font-bold text-gray-900 text-sm">Thanh toán khi nhận hàng (COD)</p>
+                      <p className="text-xs text-gray-500 mt-1">Giao hàng tận nơi, thanh toán trực tiếp.</p>
                     </div>
                   </div>
                 </label>
-                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === "banking" ? "border-orange-500 bg-orange-500/20" : "border-white/20"}`}>
-                  <input type="radio" name="payment" value="banking" checked={paymentMethod === "banking"} onChange={() => setPaymentMethod("banking")} className="w-5 h-5 text-orange-500" />
-                  <div className="ml-4 flex items-center gap-3">
-                    <span className="text-3xl">🏦</span>
+
+                <label className={`flex items-center p-5 border rounded-2xl cursor-pointer transition-all duration-300 ${paymentMethod === "banking" ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300 bg-white"}`}>
+                  <input type="radio" name="payment" value="banking" checked={paymentMethod === "banking"} onChange={() => setPaymentMethod("banking")} className="w-5 h-5 accent-gray-900" />
+                  <div className="ml-4 flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-lg shadow-sm">🏦</div>
                     <div>
-                      <p className="font-bold text-white">Chuyển khoản (VietQR)</p>
-                      <p className="text-sm text-gray-400">Quét mã QR để thanh toán nhanh chóng.</p>
+                      <p className="font-bold text-gray-900 text-sm">Chuyển khoản (VietQR)</p>
+                      <p className="text-xs text-gray-500 mt-1">Thanh toán an toàn, quét mã QR tiện lợi.</p>
                     </div>
                   </div>
                 </label>
               </div>
             </div>
+
           </div>
 
-          <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-xl p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 sticky top-[100px]">
-              <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Tóm tắt đơn hàng</h2>
-              <div className="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
+          <div className="lg:col-span-5 xl:col-span-4">
+            <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 sticky top-32">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Tóm tắt đơn hàng</h2>
+              
+              <div className="space-y-4 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
                 {cartItems.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
+                  <div key={idx} className="flex justify-between items-start text-sm">
                     <div className="flex gap-3">
-                      <div className="font-bold text-orange-300">{item.quantity}x</div>
-                      <div className="font-semibold text-white">{item.name}</div>
+                      <div className="font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded text-xs mt-0.5">{item.quantity}</div>
+                      <div className="font-semibold text-gray-800 leading-tight">
+                        {item.name}
+                        {item.variant && <div className="text-xs text-gray-500 mt-0.5">{item.variant}</div>}
+                      </div>
                     </div>
-                    <div className="font-semibold text-orange-300">{(item.price * item.quantity).toLocaleString()} đ</div>
+                    <div className="font-bold text-gray-900 whitespace-nowrap ml-4">{(item.price * item.quantity).toLocaleString()} ₫</div>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between items-center border-t border-white/10 pt-4 mb-8">
-                <span className="text-lg font-bold text-white">Tổng cộng</span>
-                <span className="text-2xl font-black text-orange-400">{totalAmount.toLocaleString()} đ</span>
+
+              <div className="border-t border-gray-100 pt-5 mb-6 space-y-3 text-sm">
+                <div className="flex justify-between items-center text-gray-500">
+                  <span>Tạm tính</span>
+                  <span className="font-medium text-gray-900">{subTotal.toLocaleString()} ₫</span>
+                </div>
+                <div className="flex justify-between items-center text-gray-500">
+                  <span>Phí giao hàng</span>
+                  <span className="font-medium text-gray-900">{shippingFee.toLocaleString()} ₫</span>
+                </div>
               </div>
-              <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:from-orange-600 hover:scale-95 transition-all">
-                {paymentMethod === "banking" ? "TẠO MÃ QR THANH TOÁN" : "XÁC NHẬN ĐẶT HÀNG"}
+
+              <div className="flex justify-between items-end border-t border-gray-100 pt-6 mb-8">
+                <span className="text-base font-bold text-gray-900">Tổng cộng</span>
+                <div className="text-right">
+                  <span className="text-3xl font-black text-gray-900 leading-none">{totalAmount.toLocaleString()} ₫</span>
+                  <span className="block text-xs text-gray-400 mt-1 font-medium italic">(Đã bao gồm VAT)</span>
+                </div>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full bg-gray-900 text-white py-4 rounded-full font-bold shadow-md hover:bg-black hover:-translate-y-0.5 transition-all duration-300"
+              >
+                {paymentMethod === "banking" ? "Thanh toán qua QR" : "Xác nhận đặt hàng"}
               </button>
             </div>
           </div>
-        </form>
+        </motion.form>
       </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+      `}} />
     </div>
   );
 };
+
 export default Checkout;

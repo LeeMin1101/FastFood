@@ -15,7 +15,6 @@ const { Server } = require("socket.io");
 
 const app = express();
 
-// Cấu hình trust proxy để express-rate-limit hoạt động đúng trên Render
 app.set("trust proxy", 1);
 
 const server = http.createServer(app);
@@ -35,7 +34,6 @@ const io = new Server(server, {
 
 connectDB();
 
-// Cấu hình helmet cho phép Frontend lấy ảnh từ thư mục uploads
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
 app.use(cors({
@@ -47,10 +45,11 @@ app.use(express.json());
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Rate limit cho auth
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, 
-  max: 10,
-  message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau 15 phút" }
+  max: 1000,
+  message: { message: "Quá nhiều yêu cầu, vui lòng thử lại sau 5 phút" }
 });
 
 // Routes
@@ -59,14 +58,14 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/banners", require("./routes/banner"));
 app.use("/api/payment", require("./routes/payment"));
-app.use('/api/table-orders', require('./routes/TableOrder'));
-app.use('/api/tables', require('./routes/tableRoutes'));
+app.use("/api/table-orders", require("./routes/TableOrder"));
+app.use("/api/tables", require("./routes/tableRoutes"));
 
 app.get("/", (req, res) => {
   res.send("Fast Food API is running");
 });
 
-// Nhúng socket
+// Socket
 require("./socket/chatSocket")(io);
 
 const PORT = process.env.PORT || 3000;

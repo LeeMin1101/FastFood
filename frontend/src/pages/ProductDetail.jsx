@@ -142,7 +142,6 @@ export default function ProductDetail() {
     setTimeout(() => document.body.removeChild(imgClone), 800);
   };
 
-  // NÚT THÊM VÀO GIỎ HÀNG (GIỮ NGUYÊN)
   const handleAddToCart = () => {
     if (!product) return;
     
@@ -162,7 +161,6 @@ export default function ProductDetail() {
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
-  // 👉 NÚT MUA NGAY (ĐÃ UPDATE: BỎ QUA GIỎ HÀNG, BAY THẲNG SANG CHECKOUT)
   const handleBuyNow = () => {
     if (!product) return;
     
@@ -176,13 +174,12 @@ export default function ProductDetail() {
       totalPrice: calculateUnitPrice() * quantity
     };
 
-    // Truyền dữ liệu trực tiếp sang trang checkout thông qua 'state'
     navigate("/checkout", { state: { directItem } });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-orange-900 to-red-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-12 h-12 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin"></div>
       </div>
     );
@@ -190,9 +187,9 @@ export default function ProductDetail() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-orange-900 to-red-900 px-4">
-        <div className="bg-white/10 backdrop-blur-xl p-10 rounded-3xl border border-white/10 text-center shadow-2xl">
-          <h2 className="text-3xl font-black text-white mb-4">Sản phẩm không khả dụng</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white p-10 rounded-3xl border border-gray-200 text-center shadow-xl">
+          <h2 className="text-3xl font-black text-gray-900 mb-4">Sản phẩm không khả dụng</h2>
           <Link to="/" className="inline-block bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors">Về Trang Chủ</Link>
         </div>
       </div>
@@ -203,20 +200,25 @@ export default function ProductDetail() {
   const variants = getVariantsByCategory(product.category, product.price);
 
   return (
-    <div className="min-h-screen py-24 md:py-32 relative bg-gradient-to-br from-gray-900 via-orange-900 to-red-900">
+    // THAY ĐỔI BACKGROUND SANG LIGHT THEME
+    <div className="min-h-screen py-24 md:py-32 relative bg-gray-50 text-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" ref={containerRef}>
+        
+        {/* Nút Quay Lại */}
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-gray-300 hover:text-white font-medium transition-colors bg-white/5 px-5 py-2.5 rounded-xl border border-white/10 backdrop-blur-md">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          <Link to="/menu" className="inline-flex items-center gap-2 text-gray-600 hover:text-orange-500 font-bold transition-colors bg-white px-5 py-2.5 rounded-xl border border-gray-200 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Quay lại thực đơn
           </Link>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+          
+          {/* HÌNH ẢNH SẢN PHẨM */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-5 relative">
             <div className="sticky top-32">
               <div 
-                className="relative w-full aspect-square bg-white/5 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/10 overflow-hidden cursor-zoom-in group"
+                className="relative w-full aspect-square bg-white rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden cursor-zoom-in group"
                 onMouseMove={handleImageHover}
                 onMouseLeave={handleImageLeave}
               >
@@ -228,45 +230,47 @@ export default function ProductDetail() {
                   style={isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}}
                 />
                 
+                {/* Badges trên ảnh */}
                 <div className="absolute top-6 left-6 flex flex-col gap-3">
-                  <img src="/img/MTK.png" alt="MTK" className="w-16 h-auto drop-shadow-xl opacity-90 pointer-events-none" />
+                  <img src="/img/MTK.png" alt="MTK" className="w-16 h-auto drop-shadow-md opacity-90 pointer-events-none" />
                   {product.isAvailable ? (
-                    <span className="bg-green-500/20 text-green-400 border border-green-500/30 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg pointer-events-none">Sẵn sàng</span>
+                    <span className="bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md pointer-events-none tracking-wide">Sẵn sàng</span>
                   ) : (
-                    <span className="bg-red-500/20 text-red-400 border border-red-500/30 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg pointer-events-none">Hết hàng</span>
+                    <span className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md pointer-events-none tracking-wide">Hết hàng</span>
                   )}
                 </div>
               </div>
             </div>
           </motion.div>
 
+          {/* CHI TIẾT SẢN PHẨM */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-7 flex flex-col">
             <div className="mb-2">
-              <span className="text-orange-400 font-bold tracking-wider uppercase text-sm">{product.category}</span>
+              <span className="text-orange-500 font-bold tracking-wider uppercase text-sm">{product.category}</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">{product.name}</h1>
+            <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 leading-tight">{product.name}</h1>
 
-            <div className="mb-8 border-b border-white/10 pb-8">
+            <div className="mb-8 border-b border-gray-200 pb-8">
               <div className="flex items-baseline gap-4">
-                <span className="text-5xl font-black text-white">{unitPrice.toLocaleString("vi-VN")} ₫</span>
+                <span className="text-5xl font-black text-orange-600">{unitPrice.toLocaleString("vi-VN")} ₫</span>
               </div>
-              <p className="text-gray-300 mt-4 leading-relaxed">{product.description}</p>
+              <p className="text-gray-500 mt-4 leading-relaxed text-lg">{product.description}</p>
             </div>
 
-            {/* VARIANT SELECTION */}
+            {/* VARIANT SELECTION (Kích cỡ/Phần ăn) */}
             {variants.length > 0 && (
               <div className="mb-8">
-                <h3 className="text-lg font-bold text-white mb-4">{product.category === "Nước Uống" ? "Chọn Size" : "Chọn Phần Ăn"}</h3>
+                <h3 className="text-lg font-black text-gray-900 mb-4 uppercase tracking-wide">{product.category === "Nước Uống" ? "Chọn Size" : "Chọn Phần Ăn"}</h3>
                 <div className="flex flex-wrap gap-3">
                   {variants.map((v, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedVariant(v)}
-                      className={`px-5 py-3 rounded-xl font-bold transition-all border flex items-center gap-2 ${
+                      className={`px-5 py-3 rounded-xl font-bold transition-all border-2 flex items-center gap-2 ${
                         selectedVariant?.name === v.name
-                          ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30"
-                          : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
+                          ? "bg-orange-50 border-orange-500 text-orange-600 shadow-sm"
+                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                       }`}
                     >
                       <span>{v.name}</span>
@@ -281,8 +285,8 @@ export default function ProductDetail() {
             {product.toppings && product.toppings.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">Tùy chọn thêm (Topping)</h3>
-                  <span className="text-xs text-gray-400 font-medium bg-white/5 px-2 py-1 rounded">Có thể chọn nhiều</span>
+                  <h3 className="text-lg font-black text-gray-900 uppercase tracking-wide">Tùy chọn thêm (Topping)</h3>
+                  <span className="text-xs text-gray-500 font-bold bg-gray-200/50 px-2 py-1 rounded">Có thể chọn nhiều</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {product.toppings.map((topping) => {
@@ -291,17 +295,17 @@ export default function ProductDetail() {
                       <button 
                         key={topping._id}
                         onClick={() => handleToppingToggle(topping)}
-                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all duration-200 ${
-                          isSelected ? "bg-orange-500/20 border-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.2)]" : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20"
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 ${
+                          isSelected ? "bg-orange-50 border-orange-500 text-gray-900 shadow-sm" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${isSelected ? "bg-orange-500 border-orange-500" : "border-gray-500"}`}>
+                          <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${isSelected ? "bg-orange-500 border-orange-500" : "border-gray-300 bg-white"}`}>
                             {isSelected && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                           </div>
-                          <span className="font-medium text-sm">{topping.name}</span>
+                          <span className="font-bold text-sm">{topping.name}</span>
                         </div>
-                        <span className={`text-sm font-bold ${isSelected ? "text-orange-300" : "text-gray-400"}`}>+{topping.price.toLocaleString("vi-VN")} ₫</span>
+                        <span className={`text-sm font-black ${isSelected ? "text-orange-600" : "text-gray-500"}`}>+{topping.price.toLocaleString("vi-VN")} ₫</span>
                       </button>
                     );
                   })}
@@ -309,47 +313,56 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* NOTE */}
+            {/* GHI CHÚ BẾP */}
             <div className="mb-8">
-              <h3 className="text-lg font-bold text-white mb-4">Ghi chú đặc biệt</h3>
+              <h3 className="text-lg font-black text-gray-900 mb-4 uppercase tracking-wide">Ghi chú đặc biệt</h3>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="VD: Không hành, nhiều tương ớt, ít đá..."
-                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white/10 resize-none transition-colors text-sm"
+                className="w-full h-24 bg-white border border-gray-200 rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 resize-none transition-all text-sm shadow-sm"
               />
             </div>
 
-            {/* ACTION BAR */}
-            <div className="mt-auto bg-white/10 backdrop-blur-md border border-white/10 p-4 sm:p-5 rounded-2xl sticky bottom-4 z-20 shadow-2xl">
+            {/* ACTION BAR (Thanh công cụ đặt hàng dính đáy) */}
+            <div className="mt-auto bg-white/90 backdrop-blur-xl border border-gray-200 p-4 sm:p-5 rounded-2xl sticky bottom-4 z-20 shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 
-                <div className="flex items-center justify-between w-full sm:w-1/3 bg-gray-900/50 p-2 rounded-xl border border-white/10">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-white bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-colors">
+                {/* Tăng giảm số lượng */}
+                <div className="flex items-center justify-between w-full sm:w-1/3 bg-gray-100 p-1.5 rounded-xl border border-gray-200">
+                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-gray-700 bg-white shadow-sm hover:text-orange-500 rounded-lg disabled:opacity-50 transition-colors">
                     −
                   </button>
-                  <span className="text-xl font-black text-white w-12 text-center">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+                  <span className="text-xl font-black text-gray-900 w-12 text-center">{quantity}</span>
+                  <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center text-xl font-bold text-gray-700 bg-white shadow-sm hover:text-orange-500 rounded-lg transition-colors">
                     +
                   </button>
                 </div>
 
                 <div className="flex flex-1 w-full gap-3">
+                  {/* Nút Thêm vào giỏ */}
                   <button
                     onClick={handleAddToCart}
                     disabled={!product.isAvailable}
-                    className={`flex-1 py-3 sm:py-4 px-2 rounded-xl font-bold text-sm lg:text-base transition-all duration-300 flex items-center justify-center gap-2 ${
-                      addedToCart ? "bg-green-500 text-white shadow-lg shadow-green-500/30" : product.isAvailable ? "bg-white/10 text-white hover:bg-white/20 border border-white/20" : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                    className={`flex-1 py-3 sm:py-4 px-2 rounded-xl font-black uppercase tracking-wider text-xs sm:text-sm transition-all duration-300 flex items-center justify-center gap-2 border-2 ${
+                      addedToCart 
+                        ? "bg-green-500 border-green-500 text-white shadow-lg shadow-green-500/30" 
+                        : product.isAvailable 
+                          ? "bg-white text-gray-700 border-gray-200 hover:border-orange-500 hover:text-orange-600 shadow-sm" 
+                          : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                     }`}
                   >
                     {addedToCart ? "✓ Đã thêm" : "Thêm vào giỏ"}
                   </button>
 
+                  {/* Nút Mua ngay */}
                   <button
                     onClick={handleBuyNow}
                     disabled={!product.isAvailable}
-                    className={`flex-[1.5] py-3 sm:py-4 px-2 rounded-xl font-bold text-sm lg:text-base transition-all duration-300 flex items-center justify-center gap-2 ${
-                      product.isAvailable ? "bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/30" : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                    className={`flex-[1.5] py-3 sm:py-4 px-2 rounded-xl font-black uppercase tracking-widest text-xs sm:text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+                      product.isAvailable 
+                        ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30 hover:from-orange-600 hover:to-red-600" 
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
                     }`}
                   >
                     Mua Ngay • {(unitPrice * quantity).toLocaleString("vi-VN")} ₫

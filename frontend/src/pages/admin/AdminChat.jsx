@@ -1,85 +1,90 @@
 import React, { useState, useEffect } from "react";
-import { db } from "./firebase-config"; // File cấu hình firebase của bạn
-import { collection, query, onSnapshot, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
+import io from "socket.io-client";
+import { SERVER_URL } from "../../config";
 
-export default function AdminChat() {
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [chats, setChats] = useState([]); // Danh sách các cuộc hội thoại
-  const [messages, setMessages] = useState([]);
-  const [reply, setReply] = useState("");
+const socket = io(SERVER_URL);
 
-  // 1. Lấy danh sách các khách hàng đang chat
+export default function AdminChat({ externalActiveClient }) {
+  const [clients, setClients] = useState({});
+  const [activeClient, setActiveClient] = useState(null);
+  const [replyMsg, setReplyMsg] = useState("");
+
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "chats"), (snapshot) => {
-      setChats(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    if (externalActiveClient) setActiveClient(externalActiveClient);
+  }, [externalActiveClient]);
+
+  useEffect(() => {
+    socket.emit("admin_join");
+    socket.on("admin_load_history", (history) => {
+      const grouped = {};
+      history.forEach(m => {
+        if (!grouped[m.clientId]) grouped[m.clientId] = { name: m.clientName, messages: [] };
+        grouped[m.clientId].messages.push(m);
+      });
+      setClients(grouped);
     });
-    return () => unsubscribe();
+
+    socket.on("admin_receive_message", (newMsg) => {
+      setClients(prev => {
+        const current = prev[newMsg.clientId] || { name: newMsg.clientName, messages: [] };
+        return { ...prev, [newMsg.clientId]: { ...current, messages: [...current.messages, newMsg] } };
+      });
+    });
+
+    return () => { socket.off("admin_load_history"); socket.off("admin_receive_message"); };
   }, []);
 
-  // 2. Lấy tin nhắn khi chọn một khách hàng
-  useEffect(() => {
-    if (!selectedChat) return;
-    const q = query(collection(db, "chats", selectedChat, "messages"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => doc.data()));
-    });
-    return () => unsubscribe();
-  }, [selectedChat]);
-
-  const sendReply = async () => {
-    await addDoc(collection(db, "chats", selectedChat, "messages"), {
-      text: reply,
-      sender: "staff",
-      createdAt: serverTimestamp(),
-    });
-    setReply("");
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!replyMsg.trim() || !activeClient) return;
+    const msg = { sender: "admin", text: replyMsg };
+    setClients(prev => ({ ...prev, [activeClient]: { ...prev[activeClient], messages: [...prev[activeClient].messages, msg] } }));
+    socket.emit("admin_reply_message", { targetClientId: activeClient, clientName: clients[activeClient].name, message: replyMsg });
+    setReplyMsg("");
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-orange-900 to-red-900">
-      {/* Sidebar: Danh sách khách hàng */}
-      <div className="w-1/4 bg-white/5 backdrop-blur-xl border-r border-white/10">
-        <h2 className="p-4 font-bold border-b border-white/10 text-white">Khách hàng trực tuyến</h2>
-        {chats.map(chat => (
-          <div 
-            key={chat.id} 
-            onClick={() => setSelectedChat(chat.id)}
-            className={`p-4 cursor-pointer hover:bg-white/10 transition-colors border-b border-white/5 text-white ${selectedChat === chat.id ? 'bg-orange-500/20 border-l-2 border-l-orange-500' : ''}`}
-          >
-            Chat ID: {chat.id}
-          </div>
-        ))}
+    <div className="h-[75vh] bg-[#111] border border-white/5 rounded-3xl shadow-2xl flex overflow-hidden">
+      {/* Sidebar hội thoại */}
+      <div className="w-1/3 border-r border-white/5 flex flex-col bg-[#0d0d0d]">
+        <div className="p-6 font-black uppercase text-xs tracking-[0.2em] text-gray-500 border-b border-white/5">Hội thoại</div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {Object.keys(clients).map(id => (
+            <button key={id} onClick={() => setActiveClient(id)} 
+              className={`w-full text-left p-4 rounded-2xl transition-all border ${activeClient === id ? 'bg-orange-500/10 border-orange-500/30' : 'bg-transparent border-transparent hover:bg-white/5'}`}>
+              <p className="font-bold text-white">{clients[id].name}</p>
+              <p className="text-[11px] text-gray-500 truncate mt-1">{clients[id].messages.slice(-1)[0]?.text}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Nội dung chat */}
-      <div className="flex-1 flex flex-col bg-white/5 backdrop-blur-xl">
-        {selectedChat ? (
+      {/* Cửa sổ chat */}
+      <div className="flex-1 flex flex-col bg-transparent">
+        {activeClient ? (
           <>
-            <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.sender === "staff" ? "justify-end" : "justify-start"}`}>
-                  <span className={`inline-block px-4 py-3 rounded-2xl max-w-xs ${m.sender === "staff" ? "bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 border border-white/20 rounded-tl-none"}`}>
-                    {m.text}
-                  </span>
+            <div className="p-5 border-b border-white/5 flex justify-between items-center bg-[#151515]">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <div className="font-bold text-white tracking-wide">{clients[activeClient].name}</div>
+              </div>
+            </div>
+            <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 custom-scrollbar">
+              {clients[activeClient].messages.map((m, idx) => (
+                <div key={idx} className={`p-4 max-w-[75%] rounded-2xl text-sm leading-relaxed shadow-sm ${m.sender === 'admin' ? 'bg-orange-600 text-white self-end rounded-tr-none' : 'bg-white/5 text-gray-300 border border-white/5 self-start rounded-tl-none'}`}>
+                  {m.text}
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t border-white/10 bg-white/5 flex gap-2">
-              <input 
-                value={reply} 
-                onChange={(e) => setReply(e.target.value)}
-                className="flex-1 border border-white/20 bg-white/5 p-3 rounded-xl text-white placeholder-gray-400 outline-none focus:border-orange-500 focus:bg-white/10 transition-all" 
-                placeholder="Nhập câu trả lời..."
-              />
-              <button onClick={sendReply} className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-red-700 transition-all shadow-lg">Gửi</button>
-            </div>
+            <form onSubmit={handleSend} className="p-5 bg-[#0d0d0d] border-t border-white/5 flex gap-3">
+              <input value={replyMsg} onChange={e => setReplyMsg(e.target.value)} placeholder="Nhập tin nhắn hỗ trợ..." className="flex-1 bg-[#1a1a1a] border border-white/10 text-white rounded-xl px-4 py-3 outline-none focus:border-orange-500 transition-all text-sm" />
+              <button type="submit" className="bg-orange-600 text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-orange-600/20 hover:bg-orange-700 transition-all">Gửi</button>
+            </form>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400 font-medium text-lg">
-            <div className="text-center">
-              <span className="text-6xl mb-4 block opacity-30">💬</span>
-              Chọn một khách hàng để bắt đầu hỗ trợ
-            </div>
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600">
+            <span className="text-4xl mb-4 opacity-20">💬</span>
+            <p className="font-bold uppercase text-[10px] tracking-[0.2em]">Chọn một hội thoại để trả lời</p>
           </div>
         )}
       </div>

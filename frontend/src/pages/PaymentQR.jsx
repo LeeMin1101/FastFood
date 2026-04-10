@@ -1,129 +1,105 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useParams, useLocation, Link, useNavigate } from "react-router-dom";
 
-// 👉 1. Đưa biến bankInfo ra NGOÀI component để tránh lỗi ReferenceError
-const bankInfo = {
-  bankName: "Vietcombank",
-  accountName: "TRUONG LE MINH",
-  accountNumber: "0123456789"
-};
-
-// 👉 2. Đường dẫn ảnh QR của bạn (để trong thư mục public/img)
-const qrImage = "/img/qr_real.png"; 
-
-export default function PaymentQR() {
+const PaymentQR = () => {
   const { orderId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Lấy tổng tiền từ trang Checkout truyền sang
   const amount = location.state?.amount || 0;
 
-  const [timeLeft, setTimeLeft] = useState(600);
-  const [isExpired, setIsExpired] = useState(false);
-  const [copiedField, setCopiedField] = useState("");
-
-  // Tạo nội dung tự động dựa trên mã đơn
-  const transferContent = `Thanh toan don ${orderId ? orderId.substring(0, 6) : "123"}`;
-
   useEffect(() => {
-    if (timeLeft <= 0) {
-      setIsExpired(true);
-      return;
+    window.scrollTo(0, 0);
+    // Nếu vào thẳng trang này mà không có tiền thì đá về trang chủ
+    if (!amount || amount === 0) {
+      navigate("/");
     }
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [amount, navigate]);
 
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-    const s = (seconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
+  /* ========================================================
+     CẤU HÌNH THÔNG TIN NGÂN HÀNG CỦA BẠN (Sửa lại cho đúng)
+  ======================================================== */
+  const MY_BANK = {
+    BANK_ID: "Vietinbank", // Tên viết tắt: MB, VCB, TCB, ACB, TPB...
+    ACCOUNT_NO: "102874375639 ", // Số tài khoản của bạn
+    ACCOUNT_NAME: "TRUONG LE MINH", // Tên chủ tài khoản không dấu
   };
 
-  const handleCopy = (text, field) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-    setTimeout(() => setCopiedField(""), 2000);
-  };
-
-  const handleConfirmPayment = () => {
-    alert("Cảm ơn bạn! Chúng tôi sẽ kiểm tra biến động số dư và xác nhận đơn hàng ngay.");
-    const savedUser = JSON.parse(localStorage.getItem("user"));
-    navigate(savedUser ? "/profile" : "/");
-  };
-
-  if (!amount) return <div className="min-h-screen pt-32 text-center text-white">Đơn hàng không hợp lệ.</div>;
+  // Lấy 6 ký tự cuối của OrderID làm mã thanh toán cho ngắn gọn
+  const shortOrderId = orderId ? orderId.slice(-6).toUpperCase() : "";
+  const transferContent = `Thanh toan don ${shortOrderId}`;
+  
+  // Link tạo mã VietQR động
+  const qrUrl = `https://img.vietqr.io/image/${MY_BANK.BANK_ID}-${MY_BANK.ACCOUNT_NO}-print.png?amount=${amount}&addInfo=${transferContent}&accountName=${MY_BANK.ACCOUNT_NAME}`;
 
   return (
-    <div className="min-h-screen py-20 flex items-center justify-center bg-gradient-to-br from-gray-900 via-orange-900 to-red-900 px-4">
-      <div className="max-w-md w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 text-center shadow-2xl relative">
+    <div className="min-h-screen bg-[#FAFAFA] pt-28 pb-20 font-sans text-gray-900 flex items-center justify-center">
+      <div className="max-w-xl w-full mx-auto px-4 sm:px-6">
         
-        <h2 className="text-2xl font-black text-white mb-2">Thanh Toán Chuyển Khoản</h2>
-        <p className="text-gray-300 text-sm mb-6">Mã đơn: <span className="text-orange-400 font-bold">{orderId}</span></p>
-
-        {isExpired ? (
-          <div className="bg-red-500/20 border border-red-500 rounded-2xl p-6 mb-6">
-            <h3 className="text-red-400 font-bold text-xl mb-2">Đã Hết Thời Gian</h3>
-            <p className="text-gray-300 text-sm mb-4">Vui lòng quay lại giỏ hàng và đặt lại đơn mới.</p>
-            <Link to="/cart" className="inline-block bg-red-500 text-white px-6 py-2 rounded-xl font-bold">Về giỏ hàng</Link>
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgb(0,0,0,0.06)] border border-gray-100 text-center">
+          
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-3xl">🏦</span>
           </div>
-        ) : (
-          <>
-            {/* Box Ảnh QR - FIX KHUNG ẢNH Ở ĐÂY */}
-            <div className="bg-white p-4 rounded-2xl mb-6 shadow-lg flex flex-col items-center justify-center mx-auto w-fit">
-              <img src={qrImage} alt="Mã QR Chuyển Khoản" className="w-full max-w-[250px] h-auto object-contain rounded-md" />
-              <p className="text-xs text-gray-500 font-bold mt-3">Quét mã bằng App Ngân hàng</p>
-            </div>
+          
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">
+            Thanh toán chuyển khoản
+          </h1>
+          <p className="text-gray-500 font-medium text-sm mb-8">
+            Quét mã QR dưới đây bằng ứng dụng ngân hàng của bạn. Số tiền và nội dung sẽ được nhập tự động.
+          </p>
 
-            {/* Box Tóm tắt tiền */}
-            <div className="space-y-1 text-white mb-6">
-              <p className="text-gray-300 text-sm">Tổng tiền thanh toán:</p>
-              <p className="text-4xl font-black text-orange-400">{amount.toLocaleString()} đ</p>
-            </div>
+          {/* Khung chứa mã QR */}
+          <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 inline-block mb-8 relative">
+            <div className="absolute inset-0 border-2 border-dashed border-gray-300 rounded-3xl m-2 pointer-events-none"></div>
+            <img 
+              src={qrUrl} 
+              alt="VietQR Payment" 
+              className="w-64 h-64 md:w-72 md:h-72 object-contain relative z-10 rounded-xl mix-blend-multiply"
+            />
+          </div>
 
-            {/* Box Copy Thông tin thủ công */}
-            <div className="bg-gray-900/60 border border-white/10 rounded-xl p-4 mb-6 text-left space-y-3">
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <span className="text-sm text-gray-400">Ngân hàng</span>
-                <span className="text-sm font-bold text-white">{bankInfo.bankName}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <span className="text-sm text-gray-400">Chủ tài khoản</span>
-                <span className="text-sm font-bold text-white uppercase">{bankInfo.accountName}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <div>
-                  <span className="block text-sm text-gray-400">Số tài khoản</span>
-                  <span className="text-lg font-bold text-white">{bankInfo.accountNumber}</span>
-                </div>
-                <button onClick={() => handleCopy(bankInfo.accountNumber, "stk")} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
-                  {copiedField === "stk" ? "✅ Đã copy" : "Copy"}
-                </button>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="block text-sm text-gray-400">Nội dung chuyển khoản</span>
-                  <span className="text-md font-bold text-orange-400">{transferContent}</span>
-                </div>
-                <button onClick={() => handleCopy(transferContent, "nd")} className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
-                  {copiedField === "nd" ? "✅ Đã copy" : "Copy"}
-                </button>
+          {/* Thông tin chuyển khoản thủ công */}
+          <div className="bg-gray-50 rounded-2xl p-6 text-left space-y-4 mb-8">
+            <div className="flex justify-between items-center border-b border-gray-200 pb-3">
+              <span className="text-sm font-semibold text-gray-500">Số tiền</span>
+              <span className="text-xl font-black text-gray-900">{amount.toLocaleString()} ₫</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-gray-200 pb-3">
+              <span className="text-sm font-semibold text-gray-500">Nội dung CK</span>
+              <span className="text-sm font-bold text-gray-900 tracking-wider bg-white px-3 py-1 rounded-md border border-gray-200">
+                {transferContent}
+              </span>
+            </div>
+            <div className="flex justify-between items-center pt-1">
+              <span className="text-sm font-semibold text-gray-500">Tài khoản</span>
+              <div className="text-right">
+                <span className="block text-sm font-bold text-gray-900">{MY_BANK.ACCOUNT_NO}</span>
+                <span className="block text-xs font-medium text-gray-500">{MY_BANK.BANK_ID} - {MY_BANK.ACCOUNT_NAME}</span>
               </div>
             </div>
+          </div>
 
-            {/* Box Đếm ngược */}
-            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3 mb-6">
-              <p className="text-sm text-orange-200">Giao dịch sẽ hết hạn sau: <span className="text-xl font-mono font-bold text-orange-400 ml-2">{formatTime(timeLeft)}</span></p>
-            </div>
-
+          <div className="space-y-3">
             <button 
-              onClick={handleConfirmPayment}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white font-black uppercase tracking-wider py-4 rounded-xl shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:scale-[0.98] transition-all"
+              onClick={() => navigate("/profile")}
+              className="w-full bg-gray-900 text-white py-4 rounded-full font-bold shadow-md hover:bg-black hover:-translate-y-0.5 transition-all duration-300"
             >
-              TÔI ĐÃ CHUYỂN KHOẢN
+              Tôi đã thanh toán thành công
             </button>
-          </>
-        )}
+            <Link 
+              to="/"
+              className="block w-full py-4 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Về trang chủ
+            </Link>
+          </div>
+
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default PaymentQR;

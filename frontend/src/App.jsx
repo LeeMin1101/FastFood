@@ -23,6 +23,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/admin/Dashboard";
 import TableOrder from "./pages/TableOrder";
 import NotFound from "./pages/NotFound";
+import AIFoodScan from "./pages/AIFoodScan"; // 👉 Đã import trang AI Scan
 
 function App() {
   const [user, setUser] = useState(
@@ -41,7 +42,7 @@ function App() {
   const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-orange-900 to-red-900 relative">
+    <div className="min-h-screen bg-gray-50 relative font-sans text-gray-900">
       <div className="relative z-10 flex flex-col min-h-screen">
 
         {!shouldHideLayout && (
@@ -50,7 +51,7 @@ function App() {
 
         <ScrollToTop />
 
-        <main className={!shouldHideLayout ? "pt-[80px] lg:pt-[110px] flex-1" : "flex-1"}>
+        <main className={!shouldHideLayout ? "pt-[80px] lg:pt-[110px] flex-1 min-h-[calc(100vh-400px)] flex flex-col justify-start" : "flex-1 flex flex-col"}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/menu" element={<Menu />} />
@@ -59,6 +60,9 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/table-order" element={<TableOrder />} />
+            
+            {/* 👉 Đã thêm Route cho AI Scan */}
+            <Route path="/ai-scan" element={<AIFoodScan />} /> 
 
             <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
