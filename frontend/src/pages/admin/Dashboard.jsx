@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiPieChart, FiShoppingCart, FiGrid, FiPackage, FiImage, FiUsers, FiMessageCircle, FiMenu, FiX } from "react-icons/fi";
+import { 
+  FiPieChart, 
+  FiShoppingCart, 
+  FiGrid, 
+  FiPackage, 
+  FiImage, 
+  FiUsers, 
+  FiMessageCircle, 
+  FiMenu, 
+  FiX, 
+  FiTag 
+} from "react-icons/fi";
 
 import Overview from "./Overview";
 import OrderManager from "./OrderManager";
@@ -9,6 +20,7 @@ import ProductManager from "./ProductManager";
 import UserManager from "./UserManager";
 import TableManager from "./TableManager";
 import AdminChat from "./AdminChat";
+import AdminCoupon from "./AdminCoupon";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -36,6 +48,7 @@ export default function Dashboard() {
     { id: "orders", icon: <FiShoppingCart />, label: "Đơn hàng" },
     { id: "tables", icon: <FiGrid />, label: "Đặt bàn" },
     { id: "products", icon: <FiPackage />, label: "Sản phẩm" },
+    { id: "coupons", icon: <FiTag />, label: "Mã giảm giá" },
     { id: "banners", icon: <FiImage />, label: "Banner" },
     { id: "users", icon: <FiUsers />, label: "Khách hàng" },
     { id: "chat", icon: <FiMessageCircle />, label: "CSKH" }
@@ -47,6 +60,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/80 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
       )}
 
+      {/* Sidebar */}
       <div className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#111] border-r border-white/5 p-6 flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className="flex items-center justify-between mb-10 mt-4 relative">
           <div className="flex w-full items-center justify-center">
@@ -72,6 +86,7 @@ export default function Dashboard() {
         </nav>
       </div>
 
+      {/* Main Content */}
       <div className="flex-1 overflow-y-auto flex flex-col h-screen relative custom-scrollbar">
         <div className="bg-[#111]/90 backdrop-blur-xl px-4 lg:px-10 py-5 border-b border-white/5 shadow-sm flex justify-between items-center sticky top-0 z-30">
           <div className="flex items-center gap-4">
@@ -83,6 +98,7 @@ export default function Dashboard() {
               {activeTab === "orders" && "Quản lý đơn hàng"}
               {activeTab === "tables" && "Quản lý đặt bàn"}
               {activeTab === "products" && "Kho sản phẩm"}
+              {activeTab === "coupons" && "Chiến dịch giảm giá"}
               {activeTab === "banners" && "Danh sách banner"}
               {activeTab === "users" && "Thông tin khách hàng"}
               {activeTab === "chat" && "Trung tâm CSKH"}
@@ -101,6 +117,7 @@ export default function Dashboard() {
           {activeTab === "orders" && <OrderManager />}
           {activeTab === "tables" && <TableManager />}
           {activeTab === "products" && <ProductManager />}
+          {activeTab === "coupons" && <AdminCoupon />}
           {activeTab === "banners" && <BannerManager />}
           {activeTab === "users" && <UserManager onInitiateChat={handleInitiateChat} />}
           {activeTab === "chat" && <AdminChat externalActiveClient={selectedChatUser} />}

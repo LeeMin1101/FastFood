@@ -9,6 +9,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/product");
 const orderRoutes = require("./routes/order");
+const couponRoutes = require('./routes/coupons');
 
 const http = require("http");
 const { Server } = require("socket.io");
@@ -60,6 +61,7 @@ app.use("/api/banners", require("./routes/banner"));
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/table-orders", require("./routes/TableOrder"));
 app.use("/api/tables", require("./routes/tableRoutes"));
+app.use('/api/coupons', couponRoutes);
 
 app.get("/", (req, res) => {
   res.send("Fast Food API is running");

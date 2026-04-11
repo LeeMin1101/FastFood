@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux"; 
 import { clearCart } from "../redux/cartSlice"; 
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion"; // Đã thêm Framer Motion để tạo hiệu ứng trượt
+import { motion } from "framer-motion";
 import axios from "axios";
 import { SERVER_URL } from "../config";
 
@@ -15,9 +15,19 @@ const Checkout = () => {
   const reduxCartItems = useSelector((state) => state.cart.items);
   const cartItems = directItem ? [directItem] : reduxCartItems;
   
-  const subTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subTotal = cartItems.reduce((total, item) => {
+    const itemTotal = item.totalPrice || (item.price * item.quantity);
+    return total + itemTotal;
+  }, 0);
+
   const shippingFee = subTotal > 0 ? 15000 : 0;
-  const totalAmount = subTotal + shippingFee;
+
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null); 
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
+
+  const totalAmount = Math.max(0, subTotal + shippingFee - discountAmount);
 
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [formData, setFormData] = useState({ fullName: "", phone: "", note: "" });
@@ -38,10 +48,7 @@ const Checkout = () => {
   });
 
   useEffect(() => {
-    // FIX LỖI SCROLL: Ép trình duyệt cuộn lên đầu trang ngay lập tức
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    
-    // Đảm bảo cuộn lên đầu một lần nữa sau khi render để tránh lỗi của React Router
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, 50);
@@ -51,10 +58,9 @@ const Checkout = () => {
       setFormData(prev => ({ ...prev, fullName: savedUser.name || "", phone: savedUser.phone || "" }));
     }
 
-    // Tải dữ liệu Tỉnh/Thành
     axios.get("https://provinces.open-api.vn/api/?depth=3")
       .then(res => setLocations(res.data))
-      .catch(err => console.error("Lỗi tải dữ liệu địa lý:", err));
+      .catch(err => console.error(err));
   }, []);
 
   const handleInputChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -90,6 +96,27 @@ const Checkout = () => {
     setAddressData({ ...addressData, ward: ward?.name || "" });
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    setCouponMessage("Đang kiểm tra...");
+    
+    try {
+      const res = await axios.post(`${SERVER_URL}/api/coupons/apply`, {
+        code: couponCode,
+        orderValue: subTotal,
+        shippingFee: shippingFee
+      });
+      
+      setDiscountAmount(res.data.discountAmount);
+      setAppliedCoupon(res.data.code);
+      setCouponMessage("🎉 " + res.data.message);
+    } catch (error) {
+      setDiscountAmount(0);
+      setAppliedCoupon(null);
+      setCouponMessage("❌ " + (error.response?.data?.message || "Lỗi kiểm tra mã"));
+    }
+  };
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) return alert("Giỏ hàng của bạn đang trống!");
@@ -103,8 +130,17 @@ const Checkout = () => {
     const orderData = {
       userId: savedUser ? savedUser.id : null,
       customer: { ...formData, address: fullAddress },
-      items: cartItems.map(item => ({ name: item.name, price: item.price, quantity: item.quantity, image: item.image })),
+      items: cartItems.map(item => ({ 
+        name: item.name, 
+        price: item.unitPrice || item.price, 
+        quantity: item.quantity, 
+        image: item.image,
+        variant: item.variant || "",
+        notes: item.notes || ""
+      })),
       totalAmount: totalAmount,
+      couponCode: appliedCoupon,
+      discountAmount: discountAmount,
       paymentMethod: paymentMethod,
       status: paymentMethod === "banking" ? "Chờ thanh toán" : "Chờ xác nhận"
     };
@@ -140,7 +176,6 @@ const Checkout = () => {
     <div className="min-h-screen bg-[#FAFAFA] pt-24 pb-20 font-sans text-gray-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* HIỆU ỨNG TRƯỢT XUỐNG CHO HEADER (TITLE) */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -152,12 +187,10 @@ const Checkout = () => {
           </span>
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 uppercase tracking-tight relative pb-5 inline-block">
             Thanh Toán
-            {/* Đã thêm lại gạch chân bo tròn đúng format cũ */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-1.5 bg-gray-900 rounded-full"></div>
           </h1>
         </motion.div>
 
-        {/* HIỆU ỨNG TRƯỢT LÊN CHO FORM */}
         <motion.form 
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -257,35 +290,76 @@ const Checkout = () => {
               <h2 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-100 pb-4">Tóm tắt đơn hàng</h2>
               
               <div className="space-y-4 mb-6 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                {cartItems.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-start text-sm">
-                    <div className="flex gap-3">
-                      <div className="font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded text-xs mt-0.5">{item.quantity}</div>
-                      <div className="font-semibold text-gray-800 leading-tight">
-                        {item.name}
-                        {item.variant && <div className="text-xs text-gray-500 mt-0.5">{item.variant}</div>}
+                {cartItems.map((item, idx) => {
+                  const itemTotal = item.totalPrice || (item.price * item.quantity);
+                  
+                  return (
+                    <div key={idx} className="flex justify-between items-start text-sm">
+                      <div className="flex gap-3">
+                        <div className="font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded text-xs mt-0.5">{item.quantity}</div>
+                        <div className="font-semibold text-gray-800 leading-tight">
+                          {item.name}
+                          {item.variant && <div className="text-xs text-gray-500 mt-0.5">{item.variant}</div>}
+                        </div>
+                      </div>
+                      <div className="font-bold text-gray-900 whitespace-nowrap ml-4">
+                        {itemTotal.toLocaleString("vi-VN")} ₫
                       </div>
                     </div>
-                    <div className="font-bold text-gray-900 whitespace-nowrap ml-4">{(item.price * item.quantity).toLocaleString()} ₫</div>
-                  </div>
-                ))}
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-gray-100 pt-5 mb-6">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mã giảm giá</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={couponCode} 
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    disabled={appliedCoupon !== null}
+                    placeholder="Nhập mã..." 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all font-bold uppercase disabled:opacity-60 disabled:bg-gray-200" 
+                  />
+                  {appliedCoupon ? (
+                    <button type="button" onClick={() => { setAppliedCoupon(null); setDiscountAmount(0); setCouponCode(""); setCouponMessage(""); }} className="bg-red-50 text-red-500 px-4 rounded-xl font-bold hover:bg-red-100 transition-colors whitespace-nowrap">
+                      Hủy
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleApplyCoupon} className="bg-gray-900 text-white px-5 rounded-xl font-bold hover:bg-black transition-colors whitespace-nowrap">
+                      Áp dụng
+                    </button>
+                  )}
+                </div>
+                {couponMessage && (
+                  <p className={`text-xs font-bold mt-2 ${appliedCoupon ? "text-green-600" : "text-red-500"}`}>
+                    {couponMessage}
+                  </p>
+                )}
               </div>
 
               <div className="border-t border-gray-100 pt-5 mb-6 space-y-3 text-sm">
                 <div className="flex justify-between items-center text-gray-500">
                   <span>Tạm tính</span>
-                  <span className="font-medium text-gray-900">{subTotal.toLocaleString()} ₫</span>
+                  <span className="font-medium text-gray-900">{subTotal.toLocaleString("vi-VN")} ₫</span>
                 </div>
                 <div className="flex justify-between items-center text-gray-500">
                   <span>Phí giao hàng</span>
-                  <span className="font-medium text-gray-900">{shippingFee.toLocaleString()} ₫</span>
+                  <span className="font-medium text-gray-900">{shippingFee.toLocaleString("vi-VN")} ₫</span>
                 </div>
+                
+                {discountAmount > 0 && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span className="font-bold">Giảm giá ({appliedCoupon})</span>
+                    <span className="font-black">- {discountAmount.toLocaleString("vi-VN")} ₫</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between items-end border-t border-gray-100 pt-6 mb-8">
                 <span className="text-base font-bold text-gray-900">Tổng cộng</span>
                 <div className="text-right">
-                  <span className="text-3xl font-black text-gray-900 leading-none">{totalAmount.toLocaleString()} ₫</span>
+                  <span className="text-3xl font-black text-gray-900 leading-none">{totalAmount.toLocaleString("vi-VN")} ₫</span>
                   <span className="block text-xs text-gray-400 mt-1 font-medium italic">(Đã bao gồm VAT)</span>
                 </div>
               </div>

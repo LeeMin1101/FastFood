@@ -2,14 +2,7 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
-    // --- THÊM TRƯỜNG USER ID VÀO ĐÂY ---
-    // Để biết đơn hàng này là của tài khoản nào đặt
-    userId: { 
-      type: String, 
-      required: false // false để khách vãng lai (không đăng nhập) vẫn đặt hàng được
-    },
-    
-    // Đồng bộ cục customer từ Frontend
+    userId: { type: String, default: null },
     customer: {
       fullName: { type: String, required: true },
       phone: { type: String, required: true },
@@ -22,15 +15,19 @@ const orderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         image: { type: String },
+        variant: { type: String, default: "" },
+        notes: { type: String, default: "" }
       }
     ],
-    totalAmount: { type: Number, required: true }, 
+    totalAmount: { type: Number, required: true },
+    couponCode: { type: String, default: null },
+    discountAmount: { type: Number, default: 0 },
     paymentMethod: { type: String, default: "cod" },
     status: {
-        type: String,
-        enum: ['Chờ thanh toán', 'Chờ xác nhận', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã hủy'],
-        default: 'Chờ xác nhận'
-      },
+      type: String,
+      enum: ['Chờ thanh toán', 'Chờ xác nhận', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã hủy'],
+      default: 'Chờ xác nhận'
+    },
   },
   { timestamps: true }
 );

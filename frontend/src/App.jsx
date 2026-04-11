@@ -23,7 +23,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/admin/Dashboard";
 import TableOrder from "./pages/TableOrder";
 import NotFound from "./pages/NotFound";
-import AIFoodScan from "./pages/AIFoodScan"; // 👉 Đã import trang AI Scan
+import AIFoodScan from "./pages/AIFoodScan";
 
 function App() {
   const [user, setUser] = useState(
@@ -37,9 +37,9 @@ function App() {
     "/register",
     "/forgot-password",
     "/admin",
-    "/admin/dashboard",
   ];
-  const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
+  
+  const shouldHideLayout = hideLayoutRoutes.some(path => location.pathname.startsWith(path));
 
   return (
     <div className="min-h-screen bg-gray-50 relative font-sans text-gray-900">
@@ -60,16 +60,15 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/table-order" element={<TableOrder />} />
-            
-            {/* 👉 Đã thêm Route cho AI Scan */}
             <Route path="/ai-scan" element={<AIFoodScan />} /> 
 
             <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
+            {/* Chỉ cần một Route admin duy nhất, bên trong Dashboard sẽ xử lý các Tab */}
             <Route path="/admin" element={<AdminRoute><Dashboard /></AdminRoute>} />
-            <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+            
             <Route path="/payment-qr/:orderId" element={<PaymentQR />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
