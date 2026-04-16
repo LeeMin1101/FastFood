@@ -12,16 +12,22 @@ export default function Overview() {
       const token = localStorage.getItem("token");
       if (!token) return;
 
+      // Cấu hình Header chứa Token
       const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      // TÁCH RIÊNG 2 API: Để nếu lỗi 401 ở Users, Orders vẫn load được bình thường
       try {
-        const [ordersRes, usersRes] = await Promise.all([
-          axios.get(`${SERVER_URL}/api/orders`, config),
-          axios.get(`${SERVER_URL}/api/auth/users`, config)
-        ]);
+        const ordersRes = await axios.get(`${SERVER_URL}/api/orders`, config);
         setOrders(ordersRes.data);
+      } catch (error) {
+        console.error("Lỗi lấy dữ liệu Đơn hàng:", error);
+      }
+
+      try {
+        const usersRes = await axios.get(`${SERVER_URL}/api/auth/users`, config);
         setUsers(usersRes.data);
       } catch (error) {
-        console.error("Lỗi lấy dữ liệu Overview", error);
+        console.error("Lỗi lấy dữ liệu Người dùng (Thường do lỗi 401 Phân quyền):", error);
       }
     };
     fetchData();
